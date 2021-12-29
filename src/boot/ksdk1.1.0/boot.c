@@ -62,6 +62,8 @@
 #include "gpio_pins.h"
 #include "SEGGER_RTT.h"
 
+#include "devSSD1331.h"
+
 
 #define							kWarpConstantStringI2cFailure		"\rI2C failed, reg 0x%02x, code %d\n"
 #define							kWarpConstantStringErrorInvalidVoltage	"\rInvalid supply voltage [%d] mV!"
@@ -2016,6 +2018,8 @@ main(void)
 			warpPrint("Should not get here...");
 		}
 	#endif
+
+	devSSD1331init();
 
 	while (1)
 	{
