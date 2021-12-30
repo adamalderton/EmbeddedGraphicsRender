@@ -14,6 +14,13 @@
 #define GET_FRAME_VALUE(frame, x, y, channel) \
     ( frame[FRAME_NUM_ROWS - y - 1][x][channel] )
 
+#define COPY_2D_VERTEX(dest, src) \
+    dest[X] = src[X]; \
+    dest[Y] = src[Y];
+
+#define SIGNUM(x) \
+    ((x > 0) ? 1 : ((x < 0) ? -1 : 0))
+
 typedef enum {
     X,
     Y,
@@ -33,6 +40,7 @@ typedef enum {
     for a lot of hardcoding for access.
 */
 typedef struct {
+    uint16_t rgb[FRAME_NUM_COLOURS];
     /* Three two-dimensional vertices. */
     uint16_t vs[3][2];
 } Triangle2D;
@@ -221,14 +229,9 @@ static void swap2DVertices(uint16_t v0[2], uint16_t v1[2])
 {
     uint16_t temp[2];
 
-    temp[X] = v0[X];
-    temp[Y] = v0[Y];
-
-    v0[X] = v1[X];
-    v0[Y] = v1[Y];
-
-    v1[X] = temp[X];
-    v1[Y] = temp[Y];
+    COPY_2D_VERTEX(temp, v0);
+    COPY_2D_VERTEX(v0, v1);
+    COPY_2D_VERTEX(v1, temp);
 }
 
 /*
@@ -249,30 +252,149 @@ static void sortTriangle2DVertices(Triangle2D *tri)
     }
 }
 
-static void drawFlatSideTriangle(Triangle2D tri, uint16_t rgb[FRAME_NUM_COLOURS])
+static void drawHorizontalLine(
+    uint16_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS][FRAME_NUM_COLOURS],
+    uint16_t point_0[2],
+    uint16_t point_1[2],
+    uint16_t rgb[3]
+)
 {
+    if (point_0[Y] != point_1[Y]) {
+        printf("Line not horizontal!\n");
+    }
 
+    uint16_t y = point_0[Y];
+
+    for (uint16_t x = point_0[X]; x < point_1[X]; x++) {
+        drawPixel(frame, x, y, rgb);
+    }
 }
 
-void drawTriangle(Triangle2D tri, uint16_t rgb[FRAME_NUM_COLOURS])
+static void drawFlatSideTriangle(uint16_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS][FRAME_NUM_COLOURS], Triangle2D tri)
+{
+    uint16_t temp;
+    uint16_t temp_vert1[2];
+    uint16_t temp_vert2[2];
+
+    int8_t swapped1 = 0;
+    int8_t swapped2 = 0;
+
+    uint16_t dx1 = abs(tri.vs[1][X] - tri.vs[0][X]);
+    uint16_t dy1 = abs(tri.vs[1][Y] - tri.vs[0][Y]);
+    
+    uint16_t dx2 = abs(tri.vs[2][X] - tri.vs[0][X]);
+    uint16_t dy2 = abs(tri.vs[2][Y] - tri.vs[0][Y]);
+
+    int16_t x1_incre = SIGNUM(tri.vs[1][X] - tri.vs[0][X]);
+    int16_t x2_incre = SIGNUM(tri.vs[2][X] - tri.vs[0][X]);
+    int16_t y1_incre = SIGNUM(tri.vs[1][Y] - tri.vs[0][Y]);
+    int16_t y2_incre = SIGNUM(tri.vs[2][Y] - tri.vs[0][Y]);
+
+    /* Pixel error terms. */
+    int16_t err1;
+    int16_t err2;
+
+    COPY_2D_VERTEX(temp_vert1, tri.vs[0]);
+    COPY_2D_VERTEX(temp_vert2, tri.vs[0]);
+
+    if (dy1 > dx1) {
+        temp = dx1;
+        dx1  = dy1;
+        dy1 = temp;
+        swapped1 = 1;
+    }
+
+    if (dy2 > dx2) {
+        temp = dx2;
+        dx2 = dy2;
+        dy2 = temp;
+        swapped2 = 1;
+    }
+
+    err1 = (2 * dy1) - dx1;
+    err2 = (2 * dy2) - dx2;
+
+    for (int16_t i = 0; i <= dx1; i++) {
+        drawHorizontalLine(frame, temp_vert1, temp_vert2, tri.rgb);
+
+        while (err1 >= 0) {
+            if (swapped1) {
+                temp_vert1[X] += x1_incre;
+            } else {
+                temp_vert1[Y] += y1_incre;
+            }
+            err1 -= 2 * dx1;
+        }
+
+        if (swapped1) {
+            temp_vert1[Y] += y1_incre;
+        } else {
+            temp_vert1[X] += x1_incre;
+        }
+        err1 += 2 * dy1;
+
+        /* Iterate on line 2 until it reaches line 1. */
+        while (temp_vert2[Y] != temp_vert1[Y]) {
+            while (err2 >= 0) {
+                if (swapped2) {
+                    temp_vert2[X] += x2_incre;
+                } else {
+                    temp_vert2[Y] += y2_incre;
+                }
+            }
+
+            if (swapped2) {
+                temp_vert2[Y] += y2_incre;
+            } else {
+                temp_vert2[X] += x2_incre;
+            }
+
+            err2 += 2 * dy2;
+        }
+    }
+}
+
+void drawTriangle(uint16_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS][FRAME_NUM_COLOURS], Triangle2D tri)
 {
     /* Sort vertices in ascending y. */
     sortTriangle2DVertices(&tri);
 
     /* Check for bottom-flat triangle. */
     if (tri.vs[1][Y] == tri.vs[2][Y]) {
-        drawFlatSideTriangle(tri, rgb);
+        drawFlatSideTriangle(frame, tri);
     }
     
     /* Check for top-flat triangle. */
     else if (tri.vs[0][Y] == tri.vs[1][Y]) {
-        /* Swap vertices accordingly. */
 
+        /* Cyclically shift the three vertices by one place. */
+        swap2DVertices(tri.vs[0], tri.vs[2]);
+        swap2DVertices(tri.vs[1], tri.vs[2]);
+
+        drawFlatSideTriangle(frame, tri);
     }
 
-    /* Check for top-flat triangle. */
-
     /* General case - a top-flat and a bottom-flat triangle. */
+    else {
+        uint16_t new_vertex[2];     /* New vertex to split the triangles. */
+        uint16_t temp[2];           /* Stores temporary vertex. */
+
+        new_vertex[X] = (uint16_t) (tri.vs[0][X] + ( (float) (tri.vs[1][Y] - tri.vs[0][Y]) / (float) (tri.vs[2][Y] - tri.vs[0][Y])) * (tri.vs[2][X] - tri.vs[0][X]));
+        new_vertex[Y] = tri.vs[1][Y];
+
+        /*
+            Draw bottom flat triangle.
+        */
+        COPY_2D_VERTEX(temp, tri.vs[2]);
+        COPY_2D_VERTEX(tri.vs[2], new_vertex);
+        drawFlatSideTriangle(frame, tri);
+
+        /*
+            Draw top flat triangle.
+        */
+        COPY_2D_VERTEX(tri.vs[0], temp);
+        drawFlatSideTriangle(frame, tri);
+    }
 }
 
 static void saveFrame(uint16_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS][FRAME_NUM_COLOURS])
@@ -291,29 +413,27 @@ static void saveFrame(uint16_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS][FRAME_NUM_C
     fclose(outfile);
 }
 
-
 int main(void)
 {
     uint16_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS][FRAME_NUM_COLOURS] = {{{0}}};
 
-    uint16_t rgb[FRAME_NUM_COLOURS] = {1, 0, 0};
-
     Triangle2D tri;
 
-    tri.vs[0][X] = 1;
-    tri.vs[0][Y] = 13;
+    tri.vs[0][X] = 10; tri.vs[0][Y] = 10;
+    tri.vs[1][X] = 80; tri.vs[1][Y] = 20;
+    tri.vs[2][X] = 50; tri.vs[2][Y] = 45;
 
-    tri.vs[1][X] = 2;
-    tri.vs[1][Y] = 12;
+    tri.rgb[R] = 1;
+    tri.rgb[G] = 0;
+    tri.rgb[B] = 0;
 
-    tri.vs[2][X] = 3;
-    tri.vs[2][Y] = 14;
+    // drawLine(frame, tri.vs[0], tri.vs[1], tri.rgb);
+    // drawLine(frame, tri.vs[1], tri.vs[2], tri.rgb);
+    // drawLine(frame, tri.vs[2], tri.vs[0], tri.rgb);
 
-    sortTriangle2DVertices(&tri);
+    drawTriangle(frame, tri);
 
-    for (int i = 0; i < 3; i++) {
-        printf("(%d, %d)\n", tri.vs[i][X], tri.vs[i][Y]);
-    }
+    saveFrame(frame);
 
     return 0;
 }
