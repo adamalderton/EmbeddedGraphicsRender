@@ -26,6 +26,10 @@ typedef enum {
     B
 } Colours;
 
+typedef struct {
+    uint16_t vertices[3][2];
+} Triangle2D;
+
 /*
     Defines the means to access the 'frame' array correctly.
     
@@ -54,6 +58,10 @@ static void drawPixel(
     WRITE_TO_FRAME(frame, row, col, rgb);
 }
 
+/*
+    Adapted from Graphics Programming Black Book - Michael Abrash.
+    See drawLine() for further documentation.
+*/
 static void drawLineOctant1(
     uint16_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS][FRAME_NUM_COLOURS],
     uint16_t x0,
@@ -88,6 +96,10 @@ static void drawLineOctant1(
     }
 }
 
+/*
+    Adapted from Graphics Programming Black Book - Michael Abrash.
+    See drawLine() for further documentation.
+*/
 static void drawLineOctant0(
     uint16_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS][FRAME_NUM_COLOURS],
     uint16_t x0,
@@ -119,11 +131,28 @@ static void drawLineOctant0(
         }
 
         x0 += x_direction;
-
         drawPixel(frame, x0, y0, rgb);
     }
 }
 
+
+/*
+    Draws lines via the Bresenham algorithm.
+
+    There are eight octants in the parameter space that defines 
+    line drawing. That is, x increases faster than y, y increases
+    faster than x, y is increasing faster than |x| is increasing as x grows
+    negatively, etc. Explanation can be simplified by parameterising this slope
+    in terms of its inclination angle \theta. The first octant corresponds to 
+    0 <= \theta <= (\pi / 4), for example, such that there are eight octants.
+
+    The 'lower half' of the octants, being \pi <= \theta < (2 * \pi) can be made equivalent to swapping
+    the y values of the demarcating points. Additionally, the remaining octancs (0 - 3 with 0 indexing) can be halfed 
+    once more by swapping the x values of the points as necessary, such that the line to be drawn
+    has a slope bounded by 0 <= \theta <= (\pi / 2). Therefore, following this procedure,
+    drawLine below selects which octant the line belongs to, 0 or 1, and swaps the points as necessary.
+    It then calls the correct octant line drawing procedure.
+*/
 void drawLine(
     uint16_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS][FRAME_NUM_COLOURS],
     uint16_t point_0[2],
@@ -144,7 +173,12 @@ void drawLine(
     x1 = point_1[X];
     y1 = point_1[Y];
 
-    /*  */
+    /*
+        Ensure that dy is always greater than 0.
+        That way, only half the octants need be considered.
+        That is, only line slopes between 0 and \pi as opposed to between
+        0 and 2\pi.
+    */
     if (y0 > y1) {
         temp = y0;
         y0 = y1;
@@ -165,7 +199,7 @@ void drawLine(
             drawLineOctant1(frame, x0, y0, (uint16_t) dx, (uint16_t) dy, rgb, 1);
         }
     } else {
-        dx = -dx;
+        dx = -dx; /* Ensures that line is only in octant 1 or 0. */
 
         if (dx > dy) {
             drawLineOctant0(frame, x0, y0, (uint16_t) dx, (uint16_t) dy, rgb, -1);
@@ -174,6 +208,64 @@ void drawLine(
         }
     }
 
+}
+
+/*
+    Sorts triangle vertices in ascending y.
+*/
+static void sortTriangleVertices(Triangle2D *tri)
+{
+    uint16_t temp[2];
+
+    if (tri->vertices[0][Y] > tri->vertices[2][Y]) {
+        temp[X] = tri->vertices[0][X];
+        temp[Y] = tri->vertices[0][Y];
+
+        tri->vertices[0][X] = tri->vertices[2][X];
+        tri->vertices[0][Y] = tri->vertices[2][Y];
+
+        tri->vertices[2][X] = temp[X];
+        tri->vertices[2][Y] = temp[Y];
+    }
+
+    if (tri->vertices[0][Y] > tri->vertices[1][Y]) {
+        temp[X] = tri->vertices[0][X];
+        temp[Y] = tri->vertices[0][Y];
+
+        tri->vertices[0][X] = tri->vertices[1][X];
+        tri->vertices[0][Y] = tri->vertices[1][Y];
+
+        tri->vertices[1][X] = temp[X];
+        tri->vertices[1][Y] = temp[Y];
+    }
+
+    if (tri->vertices[1][Y] > tri->vertices[2][Y]) {
+        temp[X] = tri->vertices[1][X];
+        temp[Y] = tri->vertices[1][Y];
+
+        tri->vertices[1][X] = tri->vertices[2][X];
+        tri->vertices[1][Y] = tri->vertices[2][Y];
+
+        tri->vertices[2][X] = temp[X];
+        tri->vertices[2][Y] = temp[Y];
+    }
+}
+
+static void drawFlatSideTriangle(Triangle2D tri, uint16_t rgb[FRAME_NUM_COLOURS])
+{
+
+}
+
+void drawTriangle(Triangle2D tri, uint16_t rgb[FRAME_NUM_COLOURS])
+{
+    /* Sort vertices in ascending y. */
+
+
+    /* Check for bottom-flat triangle. */
+
+    /* Check for top-flat triangle. */
+
+    /* General case - a top-flat and a bottom-flat triangle. */
 }
 
 static void saveFrame(uint16_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS][FRAME_NUM_COLOURS])
@@ -199,12 +291,22 @@ int main(void)
 
     uint16_t rgb[FRAME_NUM_COLOURS] = {1, 0, 0};
 
-    uint16_t point_0[2] = {3, 3};
-    uint16_t point_1[2] = {3, 35};
+    Triangle2D tri;
 
-    drawLine(frame, point_0, point_1, rgb);
+    tri.vertices[0][X] = 1;
+    tri.vertices[0][Y] = 5;
 
-    saveFrame(frame);
+    tri.vertices[1][X] = 2;
+    tri.vertices[1][Y] = 6;
+
+    tri.vertices[2][X] = 3;
+    tri.vertices[2][Y] = 4;
+
+    sortTriangleVertices(&tri);
+
+    for (int i = 0; i < 3; i++) {
+        printf("(%d, %d)\n", tri.vertices[i][X], tri.vertices[i][Y]);
+    }
 
     return 0;
 }
