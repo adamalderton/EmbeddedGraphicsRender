@@ -26,6 +26,13 @@ typedef enum {
     B
 } Colours;
 
+/*
+    While a 'vertex' struct would have had its advantages,
+    a 2D array to represent the vertices was selected such that the
+    vertices can be iteratively accessed - this circumvents the need
+    for a lot of hardcoding for access.
+*/
+
 typedef struct {
     uint16_t vertices[3][2];
 } Triangle2D;
