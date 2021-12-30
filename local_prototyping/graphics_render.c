@@ -32,9 +32,9 @@ typedef enum {
     vertices can be iteratively accessed - this circumvents the need
     for a lot of hardcoding for access.
 */
-
 typedef struct {
-    uint16_t vertices[3][2];
+    /* Three two-dimensional vertices. */
+    uint16_t vs[3][2];
 } Triangle2D;
 
 /*
@@ -217,44 +217,35 @@ void drawLine(
 
 }
 
-/*
-    Sorts triangle vertices in ascending y.
-*/
-static void sortTriangleVertices(Triangle2D *tri)
+static void swap2DVertices(uint16_t v0[2], uint16_t v1[2])
 {
     uint16_t temp[2];
 
-    if (tri->vertices[0][Y] > tri->vertices[2][Y]) {
-        temp[X] = tri->vertices[0][X];
-        temp[Y] = tri->vertices[0][Y];
+    temp[X] = v0[X];
+    temp[Y] = v0[Y];
 
-        tri->vertices[0][X] = tri->vertices[2][X];
-        tri->vertices[0][Y] = tri->vertices[2][Y];
+    v0[X] = v1[X];
+    v0[Y] = v1[Y];
 
-        tri->vertices[2][X] = temp[X];
-        tri->vertices[2][Y] = temp[Y];
+    v1[X] = temp[X];
+    v1[Y] = temp[Y];
+}
+
+/*
+    Sorts triangle vertices in ascending y.
+*/
+static void sortTriangle2DVertices(Triangle2D *tri)
+{
+    if (tri->vs[0][Y] > tri->vs[2][Y]) {
+        swap2DVertices(tri->vs[0], tri->vs[2]);
     }
 
-    if (tri->vertices[0][Y] > tri->vertices[1][Y]) {
-        temp[X] = tri->vertices[0][X];
-        temp[Y] = tri->vertices[0][Y];
-
-        tri->vertices[0][X] = tri->vertices[1][X];
-        tri->vertices[0][Y] = tri->vertices[1][Y];
-
-        tri->vertices[1][X] = temp[X];
-        tri->vertices[1][Y] = temp[Y];
+    if (tri->vs[0][Y] > tri->vs[1][Y]) {
+        swap2DVertices(tri->vs[0], tri->vs[1]);
     }
 
-    if (tri->vertices[1][Y] > tri->vertices[2][Y]) {
-        temp[X] = tri->vertices[1][X];
-        temp[Y] = tri->vertices[1][Y];
-
-        tri->vertices[1][X] = tri->vertices[2][X];
-        tri->vertices[1][Y] = tri->vertices[2][Y];
-
-        tri->vertices[2][X] = temp[X];
-        tri->vertices[2][Y] = temp[Y];
+    if (tri->vs[1][Y] > tri->vs[2][Y]) {
+        swap2DVertices(tri->vs[1], tri->vs[2]);
     }
 }
 
@@ -266,9 +257,18 @@ static void drawFlatSideTriangle(Triangle2D tri, uint16_t rgb[FRAME_NUM_COLOURS]
 void drawTriangle(Triangle2D tri, uint16_t rgb[FRAME_NUM_COLOURS])
 {
     /* Sort vertices in ascending y. */
-
+    sortTriangle2DVertices(&tri);
 
     /* Check for bottom-flat triangle. */
+    if (tri.vs[1][Y] == tri.vs[2][Y]) {
+        drawFlatSideTriangle(tri, rgb);
+    }
+    
+    /* Check for top-flat triangle. */
+    else if (tri.vs[0][Y] == tri.vs[1][Y]) {
+        /* Swap vertices accordingly. */
+
+    }
 
     /* Check for top-flat triangle. */
 
@@ -300,19 +300,19 @@ int main(void)
 
     Triangle2D tri;
 
-    tri.vertices[0][X] = 1;
-    tri.vertices[0][Y] = 5;
+    tri.vs[0][X] = 1;
+    tri.vs[0][Y] = 13;
 
-    tri.vertices[1][X] = 2;
-    tri.vertices[1][Y] = 6;
+    tri.vs[1][X] = 2;
+    tri.vs[1][Y] = 12;
 
-    tri.vertices[2][X] = 3;
-    tri.vertices[2][Y] = 4;
+    tri.vs[2][X] = 3;
+    tri.vs[2][Y] = 14;
 
-    sortTriangleVertices(&tri);
+    sortTriangle2DVertices(&tri);
 
     for (int i = 0; i < 3; i++) {
-        printf("(%d, %d)\n", tri.vertices[i][X], tri.vertices[i][Y]);
+        printf("(%d, %d)\n", tri.vs[i][X], tri.vs[i][Y]);
     }
 
     return 0;
