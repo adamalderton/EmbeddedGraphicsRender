@@ -521,8 +521,6 @@ static void drawFlatBottomTriangle(uint16_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS
         /* Finally, draw the line at y = y between xA and xB. */
         drawHorizontalLine(frame, y, xA, xB, tri.rgb);
     }
-
-    printf("%d\n", xA);
 }
 
 void drawTriangle(uint16_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS][FRAME_NUM_COLOURS], Triangle2D tri)
@@ -542,7 +540,67 @@ void drawTriangle(uint16_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS][FRAME_NUM_COLOU
         return;
     }
 
-    /* General Case. */
+    /*
+        General Case. We split the triangle into two - a flat top and a flat bottom. 
+        We then draw both.
+
+        To do this, we first find the common fourth point. It lies along the hypotenuse
+        and shares an x value with tri.vs[1], if the vertices are sorted correctly as above.
+        To find the y coordinate of this point, we apply Thales' theorem to interpolate
+        the hypotenuse ar this x value. We will call this point Q.
+    */
+    uint16_t Q[2];
+
+    /*
+        x_Q = (x_2 - x_0)\frac{y_1 - y_0}{y_2 - y_0} + x_0
+        The float divide is rounded as opposed to truncated as of course, with an
+        extremal point like Q, the importance of rounding up is that much higher.
+
+        Value found is incremented by 0.5 such that the casting process preforms a rounding operation.
+    */
+    Q[X] = (uint16_t) ( tri.vs[0][X] + (tri.vs[2][X] - tri.vs[0][X]) * ( ( (float) (tri.vs[1][Y] - tri.vs[0][Y]) / (float) (tri.vs[2][Y] - tri.vs[0][Y]) ) ) + 0.5);
+    Q[Y] = tri.vs[1][Y];
+
+    /*
+        We first draw the bottom half, being the top flat triangle.
+
+        In doing this, we also INCLUDE the horizontal line at Q[Y]. We don't
+        include this during the drawing of the top half as it doesn't need to be drawn
+        twice.
+
+        Following the sorting of the triangle vertices, we must temporarily
+        substitute Q for the top-most vertex. We then draw the resulting top-flat triangle.
+    */
+
+    /* Substitute in Q. 'tri.vs[0]' is temporarily stored in 'Q'. */
+    swap2DVertices(tri.vs[0], Q);
+
+    drawFlatTopTriangle(frame, tri);
+
+    /* Retrieve Q and reset triangle. temp now stores Q.*/
+    swap2DVertices(tri.vs[0], Q);
+
+    /*
+        We now draw the top half of the triangle.
+
+        To do this, we substitute the bottom-most vertex and draw the triangle.
+        We also increment the y value of the points on the bottom flat side by one
+        as to prevent that line from being re-drawn, as previously discussed.
+        We can do this by value as the triangle is no longer needed once drawn.
+    */
+    Q[Y]++;
+    tri.vs[1][Y]++;
+
+    swap2DVertices(tri.vs[2], Q);
+
+    drawFlatBottomTriangle(frame, tri);
+
+    /*
+        The triangle drawing is finished.
+
+        If needed, Q could be re-swapped out and decremented below
+        if further manipulation is needed.
+    */
 }
 
 static void saveFrame(uint16_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS][FRAME_NUM_COLOURS])
@@ -565,21 +623,33 @@ int main(void)
 {
     uint16_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS][FRAME_NUM_COLOURS] = {{{0}}};
 
-    Triangle2D tri;
+    Triangle2D tri1;
 
-    tri.vs[0][X] = 4; tri.vs[0][Y] = 3;
-    tri.vs[1][X] = 1; tri.vs[1][Y] = 1;
-    tri.vs[2][X] = 10; tri.vs[2][Y] = 1;
+    tri1.vs[0][X] = 10; tri1.vs[0][Y] = 30;
+    tri1.vs[1][X] = 25; tri1.vs[1][Y] = 10;
+    tri1.vs[2][X] = 1; tri1.vs[2][Y] = 1;
 
-    tri.rgb[R] = 1;
-    tri.rgb[G] = 0;
-    tri.rgb[B] = 0;
+    tri1.rgb[R] = 1;
+    tri1.rgb[G] = 0;
+    tri1.rgb[B] = 0;
 
     // drawLine(frame, tri.vs[0], tri.vs[1], tri.rgb);
     // drawLine(frame, tri.vs[1], tri.vs[2], tri.rgb);
     // drawLine(frame, tri.vs[2], tri.vs[0], tri.rgb);
 
-    drawTriangle(frame, tri);
+    drawTriangle(frame, tri1);
+
+    Triangle2D tri2;
+
+    tri2.vs[0][X] = 10; tri2.vs[0][Y] = 30;
+    tri2.vs[1][X] = 10; tri2.vs[1][Y] = 60;
+    tri2.vs[2][X] = 25; tri2.vs[2][Y] = 10;
+
+    tri2.rgb[R] = 2;
+    tri2.rgb[G] = 0;
+    tri2.rgb[B] = 0;
+
+    drawTriangle(frame, tri2);
 
     saveFrame(frame);
 
