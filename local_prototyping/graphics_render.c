@@ -567,9 +567,9 @@ int main(void)
 
     Triangle2D tri;
 
-    tri.vs[0][X] = 30; tri.vs[0][Y] = 20;
+    tri.vs[0][X] = 4; tri.vs[0][Y] = 3;
     tri.vs[1][X] = 1; tri.vs[1][Y] = 1;
-    tri.vs[2][X] = 20; tri.vs[2][Y] = 1;
+    tri.vs[2][X] = 10; tri.vs[2][Y] = 1;
 
     tri.rgb[R] = 1;
     tri.rgb[G] = 0;
