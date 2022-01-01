@@ -18,9 +18,6 @@
     dest[X] = src[X]; \
     dest[Y] = src[Y];
 
-#define SIGNUM(x) \
-    ((x > 0) ? 1 : ((x < 0) ? -1 : 0))
-
 typedef enum {
     X,
     Y,
@@ -46,18 +43,11 @@ typedef struct {
 } Triangle2D;
 
 typedef struct {
-    uint16_t x0;
-    uint16_t y0;
-    int16_t dx;
-    int16_t dy;
-    int16_t dxx2;
-    int16_t dyx2;
-    int16_t dxx2minusdyx2;
-    int16_t dyx2minusdxx2;
-    int16_t err0;
-    int16_t err1;
-    int16_t octant;
-    int16_t direction;
+    int16_t octant;     /* Octant of line. Either 0 or 1. */
+    int16_t direction;  /* Direction in which line increases in x. 1 or -1. */
+    int16_t p;          /* (2 * dy) for octant 0, (2 * dx) for octant 1. */
+    int16_t q;          /* (p - (2 * dx)) for octant 0, (p - (2 * dy)) for octant 1. */
+    int16_t err;        /* Pixel Error term. (p - dx) for octant 0, (p - dy) for octant 1. */
 } TriangleSideVarTracker;
 
 /*
@@ -283,58 +273,53 @@ static void drawHorizontalLine(
 
 static TriangleSideVarTracker setupLineTracker(uint16_t point_0[2], uint16_t point_1[2])
 {
-    TriangleSideVarTracker tr;
+    TriangleSideVarTracker t;
 
-    tr.x0 = point_0[X];
-    tr.y0 = point_0[Y];
+    int16_t dx = point_1[X] - point_0[X];
+    int16_t dy = point_1[Y] - point_0[Y];
 
-    tr.dx = point_1[X] - tr.x0;
-    tr.dy = point_1[Y] - tr.y0;
-
-    if (tr.dx > 0) {
-        tr.direction = 1;
-        if (tr.dx > tr.dy) {
-            tr.octant = 0;
-        } else {
-            tr.octant = 1;
-        }
+    if (dx > 0) {
+        t.direction = 1;
     } else {
-        tr.dx = -tr.dx;
-        tr.direction = -1;
-        if (tr.dx > tr.dy) {
-            tr.octant = 0;
-        } else {
-            tr.octant = 1;
-        }
+        dx = -dx;
+        t.direction = -1;
     }
 
-    tr.dxx2 = 2 * tr.dx;
-    tr.dyx2 = 2 * tr.dy;
-    tr.dxx2minusdyx2 = tr.dxx2 - tr.dyx2;
-    tr.dyx2minusdxx2 = tr.dyx2 - tr.dxx2;
-    tr.err0 = tr.dyx2 - tr.dx;
-    tr.err1 = tr.dxx2 - tr.dy;
+    if (dx > dy) {
+        t.octant = 0;
+    } else {
+        t.octant = 1;
+    }
 
-    return tr;
+    if (t.octant == 0) {
+        t.p = 2 * dy;
+        t.q = t.p - (2 * dx);
+        t.err = t.p - dx;
+    } else {
+        t.p = 2 * dx;
+        t.q = t.p - (2 * dy);
+        t.err = t.p - dy;
+    }
+
+    return t;
 }
 
 static void drawFlatTopTriangle(uint16_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS][FRAME_NUM_COLOURS], Triangle2D tri)
 {
     /*
-        As the vertices have been sorted, the flat line lies between vertex 0 and 1.
+        As the vertices have been sorted, the flat line lies between vertices 0 and 1.
         Therefore, we need to draw a line from vertex 2 to vertex 1 (left) and 
         from vertex 2 to vertex 0 (right).
 
         We'll call the left line A and the right line B.
     */
 
-    TriangleSideVarTracker A; /* Tracks progression along line A (left). */
-    TriangleSideVarTracker B; /* Tracks progression along line B (right). */
-
-    uint16_t y;         /* Tracks y coordinate. */
-    uint16_t y_end;     /* y coordinate of top line. */
-    uint16_t xA;        /* Leftmost x coordinate of left line (A) for a given y.. */
-    uint16_t xB;        /* Rightmost y coordinate of right line (B) for a given y. */
+    TriangleSideVarTracker A;   /* Tracks progression along line A (left). */
+    TriangleSideVarTracker B;   /* Tracks progression along line B (right). */
+    uint16_t y;                 /* Tracks y coordinate. */
+    uint16_t y_end;             /* y coordinate of top line. */
+    uint16_t xA;                /* Leftmost x coordinate of left line (A) for a given y.. */
+    uint16_t xB;                /* Rightmost y coordinate of right line (B) for a given y. */
 
     /*
         Ensure triangle follows right hand rule (normal out of the plane).
@@ -378,21 +363,21 @@ static void drawFlatTopTriangle(uint16_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS][F
             while (1) {
                 xA += A.direction;
 
-                if (A.err0 >= 0) {
-                    A.err0 += A.dyx2minusdxx2;
+                if (A.err >= 0) {
+                    A.err += A.q;
                     break;
                 } else {
-                    A.err0 += A.dyx2;
+                    A.err += A.p;
                 }
             }
 
         } else {
 
-            if (A.err1 >= 0) {
+            if (A.err >= 0) {
                 xA += A.direction;
-                A.err1 += A.dxx2minusdyx2;
+                A.err += A.q;
             } else {
-                A.err1 += A.dxx2;
+                A.err += A.p;
             }
 
         }
@@ -405,21 +390,130 @@ static void drawFlatTopTriangle(uint16_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS][F
             while (1) {
                 xB += B.direction;
 
-                if (B.err0 >= 0) {
-                    B.err0 += B.dyx2minusdxx2;
+                if (B.err >= 0) {
+                    B.err += B.q;
                     break;
                 } else {
-                    B.err0 += B.dyx2;
+                    B.err += B.p;
                 }
             }
 
         } else {
 
-            if (B.err1 >= 0) {
+            if (B.err >= 0) {
                 xB += B.direction;
-                B.err1 += B.dxx2minusdyx2;
+                B.err += B.q;
             } else {
-                B.err1 += B.dxx2;
+                B.err += B.p;
+            }
+
+        }
+
+        /* Finally, draw the line at y = y between xA and xB. */
+        drawHorizontalLine(frame, y, xA, xB, tri.rgb);
+    }
+}
+
+static void drawFlatBottomTriangle(uint16_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS][FRAME_NUM_COLOURS], Triangle2D tri)
+{
+    /*
+        As the vertices have been sorted, the flat line lies between vertices 1 and 2.
+        Therefore, we need to draw a line from vertex 1 to vertex 0 (left) and 
+        from vertex 2 to vertex 0 (right).
+
+        We'll call the left line A and the right line B.
+    */
+
+    TriangleSideVarTracker A;   /* Tracks progression along line A (left). */
+    TriangleSideVarTracker B;   /* Tracks progression along line B (right). */
+    uint16_t y;                 /* Tracks y coordinate. */
+    uint16_t y_end;             /* y coordinate of top line. */
+    uint16_t xA;                /* Leftmost x coordinate of left line (A) for a given y.. */
+    uint16_t xB;                /* Rightmost y coordinate of right line (B) for a given y. */
+
+    /*
+        Ensure triangle follows right hand rule (normal out of the plane).
+        This ensures that the 'right' line is on the 'right' and the 'left' line is on the left.
+    */
+    if (tri.vs[2][X] < tri.vs[1][X]) {
+        swap2DVertices(tri.vs[2], tri.vs[1]);
+    }
+
+    /* Initialise tracking variables. */
+    A = setupLineTracker(tri.vs[1], tri.vs[0]);
+    B = setupLineTracker(tri.vs[2], tri.vs[0]);
+    y = tri.vs[2][Y];
+    y_end = tri.vs[0][Y];
+    xA = tri.vs[1][X];
+    xB = tri.vs[2][X];
+
+    /* Draw first (bottom) line. */
+    drawHorizontalLine(frame, y, xA, xB, tri.rgb);
+
+    /*
+        Flat bottom triangle rasterisation loop.
+
+        Much of the duplicate code here could be put into a separate function however
+        this was decided against as to prevent unnecessary numerous pointer dereference.
+        A pointer to an octant specific function was also considered but decided against.
+
+        It is a shame that if (A.octant == 0) has be carried out for A and B at each y, but
+        in terms of code simplification, it was a price worth paying.
+    */
+    while (y < y_end) {
+
+        y++;
+
+        /*
+            Update A and get xA.
+        */
+        if (A.octant == 0) {
+
+            while (1) {
+                xA += A.direction;
+
+                if (A.err >= 0) {
+                    A.err += A.q;
+                    break;
+                } else {
+                    A.err += A.p;
+                }
+            }
+
+        } else {
+
+            if (A.err >= 0) {
+                xA += A.direction;
+                A.err += A.q;
+            } else {
+                A.err += A.p;
+            }
+
+        }
+
+        /*
+            Update B and get xB.
+        */
+        if (B.octant == 0) {
+
+            while (1) {
+                xB += B.direction;
+
+                if (B.err >= 0) {
+                    B.err += B.q;
+                    break;
+                } else {
+                    B.err += B.p;
+                }
+            }
+
+        } else {
+
+            if (B.err >= 0) {
+                xB += B.direction;
+                B.err += B.q;
+            } else {
+                B.err += B.p;
             }
 
         }
@@ -428,8 +522,7 @@ static void drawFlatTopTriangle(uint16_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS][F
         drawHorizontalLine(frame, y, xA, xB, tri.rgb);
     }
 
-    printf("%d\n", xB);
-
+    printf("%d\n", xA);
 }
 
 void drawTriangle(uint16_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS][FRAME_NUM_COLOURS], Triangle2D tri)
@@ -439,13 +532,15 @@ void drawTriangle(uint16_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS][FRAME_NUM_COLOU
 
     /* Simple case of top flat triangle only. */
     if (tri.vs[0][Y] == tri.vs[1][Y]) {
-        printf("Drawing flat top triangle...\n");
         drawFlatTopTriangle(frame, tri);
-    } else {
-        printf("What??\n");
+        return;
     }
 
     /* Simple case of bottom flat triangle only. */
+    if (tri.vs[1][Y] == tri.vs[2][Y]) {
+        drawFlatBottomTriangle(frame, tri);
+        return;
+    }
 
     /* General Case. */
 }
@@ -472,9 +567,9 @@ int main(void)
 
     Triangle2D tri;
 
-    tri.vs[0][X] = 0; tri.vs[0][Y] = 10;
-    tri.vs[1][X] = 20; tri.vs[1][Y] = 10;
-    tri.vs[2][X] = 10; tri.vs[2][Y] = 0;
+    tri.vs[0][X] = 30; tri.vs[0][Y] = 20;
+    tri.vs[1][X] = 1; tri.vs[1][Y] = 1;
+    tri.vs[2][X] = 20; tri.vs[2][Y] = 1;
 
     tri.rgb[R] = 1;
     tri.rgb[G] = 0;
