@@ -523,6 +523,18 @@ static void drawFlatBottomTriangle(uint16_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS
     }
 }
 
+/*
+    Draws and fills triangles in one colour.
+
+    First the procedure splits the triangle into a flat top and flat bottom triangle.
+    These two-sub triangles are then filled separately.
+
+    The process of filling a flat sub-triangle consists of running Bresenham's algorithm in parallel
+    for two lines and drawing a horizontal line between them when the y coordinate is incremented.
+    Further documentation on Bresenham's line algorithm and its implementation here is given among
+    the drawLine function which was a precursor to the drawTriangle function. The drawLine function was
+    adapted from an implementation by Michael Abrash.
+*/
 void drawTriangle(uint16_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS][FRAME_NUM_COLOURS], Triangle2D tri)
 {
     /* Sort triangle vertices in ascending order. Triangle will be drawn from the bottom up. */
@@ -633,23 +645,7 @@ int main(void)
     tri1.rgb[G] = 0;
     tri1.rgb[B] = 0;
 
-    // drawLine(frame, tri.vs[0], tri.vs[1], tri.rgb);
-    // drawLine(frame, tri.vs[1], tri.vs[2], tri.rgb);
-    // drawLine(frame, tri.vs[2], tri.vs[0], tri.rgb);
-
     drawTriangle(frame, tri1);
-
-    Triangle2D tri2;
-
-    tri2.vs[0][X] = 10; tri2.vs[0][Y] = 30;
-    tri2.vs[1][X] = 10; tri2.vs[1][Y] = 60;
-    tri2.vs[2][X] = 25; tri2.vs[2][Y] = 10;
-
-    tri2.rgb[R] = 2;
-    tri2.rgb[G] = 0;
-    tri2.rgb[B] = 0;
-
-    drawTriangle(frame, tri2);
 
     saveFrame(frame);
 
