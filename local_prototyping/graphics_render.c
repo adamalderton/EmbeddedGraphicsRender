@@ -250,19 +250,19 @@ static void swap2DVertices(uint16_t v0[2], uint16_t v1[2])
 }
 
 /*
-    Sorts triangle vertices in ascending y.
+    Sorts triangle vertices in descending y.
 */
 static void sortTriangle2DVertices(Triangle2D *tri)
 {
-    if (tri->vs[0][Y] > tri->vs[2][Y]) {
+    if (tri->vs[0][Y] < tri->vs[2][Y]) {
         swap2DVertices(tri->vs[0], tri->vs[2]);
     }
 
-    if (tri->vs[0][Y] > tri->vs[1][Y]) {
+    if (tri->vs[0][Y] < tri->vs[1][Y]) {
         swap2DVertices(tri->vs[0], tri->vs[1]);
     }
 
-    if (tri->vs[1][Y] > tri->vs[2][Y]) {
+    if (tri->vs[1][Y] < tri->vs[2][Y]) {
         swap2DVertices(tri->vs[1], tri->vs[2]);
     }
 }
@@ -276,9 +276,7 @@ static void drawHorizontalLine(
     uint16_t rgb[3]
 )
 {
-    uint16_t y = point_0[Y];
-
-    for (uint16_t x = point_0[X]; x < point_1[X]; x++) {
+    for (uint16_t x = x0; x <= x1; x++) {
         drawPixel(frame, x, y, rgb);
     }
 }
@@ -316,6 +314,8 @@ static TriangleSideVarTracker setupLineTracker(uint16_t point_0[2], uint16_t poi
     tr.dyx2minusdxx2 = tr.dyx2 - tr.dxx2;
     tr.err0 = tr.dyx2 - tr.dx;
     tr.err1 = tr.dxx2 - tr.dy;
+
+    return tr;
 }
 
 static void drawFlatTopTriangle(uint16_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS][FRAME_NUM_COLOURS], Triangle2D tri)
@@ -328,28 +328,30 @@ static void drawFlatTopTriangle(uint16_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS][F
         We'll call the left line A and the right line B.
     */
 
+    TriangleSideVarTracker A; /* Tracks progression along line A (left). */
+    TriangleSideVarTracker B; /* Tracks progression along line B (right). */
+
     uint16_t y;         /* Tracks y coordinate. */
     uint16_t y_end;     /* y coordinate of top line. */
     uint16_t xA;        /* Leftmost x coordinate of left line (A) for a given y.. */
     uint16_t xB;        /* Rightmost y coordinate of right line (B) for a given y. */
-
-    /* Tracks progression along line A (left). */
-    TriangleSideVarTracker A = setupLineTracker(tri.vs[2], tri.vs[1]);
-
-    /* Tracks progression along line B (right). */
-    TriangleSideVarTracker B = setupLineTracker(tri.vs[2], tri.vs[0]);
 
     /*
         Ensure triangle follows right hand rule (normal out of the plane).
         This ensures that the 'right' line is on the 'right' and the 'left' line is on the left.
     */
     if (tri.vs[0][X] < tri.vs[1][X]) {
-        swap2DVertices(tri.vs[0][X], tri.vs[1][X]);
+        swap2DVertices(tri.vs[0], tri.vs[1]);
     }
+
+    A = setupLineTracker(tri.vs[2], tri.vs[1]);
+    B = setupLineTracker(tri.vs[2], tri.vs[0]);
 
     /* If a flat top triangle is correctly passed, then tri.vs[0][Y] should equal tri.vs[1][Y]. */
     y = tri.vs[2][Y];
     y_end = tri.vs[1][Y];
+    xA = tri.vs[2][X];
+    xB = tri.vs[2][X];
 
     /* Draw first (bottom) point. */
     drawPixel(frame, tri.vs[2][X], y, tri.rgb);
@@ -364,7 +366,7 @@ static void drawFlatTopTriangle(uint16_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS][F
         It is a shame that if (A.octant == 0) has be carried out for A and B at each y, but
         in terms of code simplification, it was a price worth paying.
     */
-    while (y <= y_end) {
+    while (y < y_end) {
 
         y++;
 
@@ -426,6 +428,8 @@ static void drawFlatTopTriangle(uint16_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS][F
         drawHorizontalLine(frame, y, xA, xB, tri.rgb);
     }
 
+    printf("%d\n", xB);
+
 }
 
 void drawTriangle(uint16_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS][FRAME_NUM_COLOURS], Triangle2D tri)
@@ -435,7 +439,10 @@ void drawTriangle(uint16_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS][FRAME_NUM_COLOU
 
     /* Simple case of top flat triangle only. */
     if (tri.vs[0][Y] == tri.vs[1][Y]) {
+        printf("Drawing flat top triangle...\n");
         drawFlatTopTriangle(frame, tri);
+    } else {
+        printf("What??\n");
     }
 
     /* Simple case of bottom flat triangle only. */
@@ -465,19 +472,19 @@ int main(void)
 
     Triangle2D tri;
 
-    tri.vs[0][X] = 80; tri.vs[0][Y] = 50;
-    tri.vs[1][X] = 15; tri.vs[1][Y] = 50;
-    tri.vs[2][X] = 30; tri.vs[2][Y] = 10;
+    tri.vs[0][X] = 0; tri.vs[0][Y] = 10;
+    tri.vs[1][X] = 20; tri.vs[1][Y] = 10;
+    tri.vs[2][X] = 10; tri.vs[2][Y] = 0;
 
     tri.rgb[R] = 1;
     tri.rgb[G] = 0;
     tri.rgb[B] = 0;
 
-    drawLine(frame, tri.vs[0], tri.vs[1], tri.rgb);
-    drawLine(frame, tri.vs[1], tri.vs[2], tri.rgb);
-    drawLine(frame, tri.vs[2], tri.vs[0], tri.rgb);
+    // drawLine(frame, tri.vs[0], tri.vs[1], tri.rgb);
+    // drawLine(frame, tri.vs[1], tri.vs[2], tri.rgb);
+    // drawLine(frame, tri.vs[2], tri.vs[0], tri.rgb);
 
-    //drawTriangle(frame, tri);
+    drawTriangle(frame, tri);
 
     saveFrame(frame);
 
