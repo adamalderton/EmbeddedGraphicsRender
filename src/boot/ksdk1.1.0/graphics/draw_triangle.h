@@ -10,9 +10,9 @@
     for a lot of hardcoding for access.
 */
 typedef struct {
-    uint16_t rgb[FRAME_NUM_COLOURS];
+    uint8_t rgb[FRAME_NUM_COLOURS];
     /* Three two-dimensional vertices. */
-    uint16_t vs[3][2];
+    uint8_t vs[3][2];
 } Triangle2D;
 
 typedef struct {

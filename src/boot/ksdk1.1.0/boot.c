@@ -177,7 +177,7 @@
 #endif
 
 #if (WARP_BUILD_ENABLE_GRAPHICS)
-	#include "graphics/graphics_render.h"
+	#include "graphics_render.h"
 #endif
 
 
@@ -2021,21 +2021,15 @@ main(void)
 		}
 	#endif
 
-	/********************************************************************************
-	
-	If WARP_BUILD_ENABLE_GRAPHICS is defined, then only the graphics
-	demo is processed by Warp. Therefore, for simplicity, the main menu loop
-	has been stored in the #else preprocessor wrapper. If the graphics
-	functionality is needed in conjunction with other sensor functionality
-	then these preprocessor directives can be removed or altered as appropriate.
-
-	*********************************************************************************/
-
 	#if (WARP_BUILD_ENABLE_GRAPHICS)
-		graphicsDemo();
+		warpPrint("About to start graphics demo.\n");
+		//graphicsDemo();
+
+		devSSD1331init();
 
 		warpPrint("--- Graphics demo complete! ---\n");
-	#else
+		warpPrint("Now continuing to display the Warp main menu...\n");
+	#endif
 
 	while (1)
 	{
@@ -2797,8 +2791,6 @@ main(void)
 			}
 		}
 	}
-
-	#endif
 
 	return 0;
 }

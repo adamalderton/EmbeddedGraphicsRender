@@ -7,6 +7,21 @@
 	#define GRAPHICS
 #endif
 
+/*
+	The SSD1331 allocates 5 bits of memory to Red, 6 bits of memory to green and
+	5 bits of memory to blue. The 6th bit for green is truncated such that each
+	colour has 5 bits. Even so, to account for the uneven bit allocation, the following
+	are defined to aid in writing to GDRAM.
+
+	The green section is left shifted once more to double the colour value to match red and blue.
+	The extra precision granted by G_0 is truncated away, as mentioned.
+*/
+typedef enum {
+	RED_LEFT_SHIFT = ,
+	GREEN_LEFT_SHIFT = ,
+	BLUE_LEFT_SHIFT = ,
+}
+
 typedef enum
 {
 	kSSD1331ColororderRGB		= 1,
@@ -47,5 +62,6 @@ typedef enum
 	kSSD1331CommandVCOMH		= 0xBE,
 } SSD1331Commands;
 
+int writeCommand(uint8_t commandByte);
 void devSSD1331init(void);
 void writeFrame(uint8_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS][FRAME_NUM_COLOURS]);

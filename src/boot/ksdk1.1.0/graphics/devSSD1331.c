@@ -8,9 +8,8 @@
 #include "warp.h"
 #include "devSSD1331.h"
 
-volatile uint8_t	inBuffer[32];
-volatile uint8_t	payloadBytes[32];
-
+volatile uint8_t	in_buffer[2];
+volatile uint8_t	payload_bytes[2];
 
 /*
  *	Override Warp firmware's use of these pins and define new aliases.
@@ -42,12 +41,12 @@ static int writeCommand(uint8_t commandByte)
 	 */
 	GPIO_DRV_ClearPinOutput(kSSD1331PinDC);
 
-	payloadBytes[0] = commandByte;
+	payload_bytes[0] = commandByte;
 	status = SPI_DRV_MasterTransferBlocking(
 					0,			/* Master instance. */
 					NULL		/* spi_master_user_config_t */,
-					(const uint8_t * restrict) &payloadBytes[0],
-					(uint8_t * restrict) &inBuffer[0],
+					(const uint8_t * restrict) &payload_bytes[0],
+					(uint8_t * restrict) &in_buffer[0],
 					1			/* Transfer size */,
 					1000		/* Timeout in microseconds (unlike I2C which is ms) */);
 
@@ -59,9 +58,74 @@ static int writeCommand(uint8_t commandByte)
 	return status;
 }
 
-void devSSD1331init(void)
+/*
+	With a frame fully drawn in the 'frame' array, we now write it to the Graphics Display RAM
+	(GDRAM) within the chip over an SPI interface. Please see the SSD1331 datasheet for more information.
+
+	It is wise to consider FR synchronisation with the writing process of the SSD1331 to the display. Implemented
+	properly, a 'shearing' effect is minimised which would otherwise be a problem as the GDRAM is written to
+	asynchronously.
+*/
+void writeFrame(uint8_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS][FRAME_NUM_COLOURS])
 {
 	/*
+		The default writing format in which the SSD1331 chip expects to receive data is column wise. That is,
+		each time a data write is performed, the chip internally increments its column pointer such that the
+		next data byte is written into the sequestial GDRAM address. Fortunately, that agrees well with C style
+		indexing, so we leverage this below.
+
+		As a reminder, the GDRAM expects to be written to from top left to bottom right. However, our 'frame' coordinate system
+		extends from the bottom left to the rop right. Therefore, we need to iterate over the frame appropriately (C style indexing).
+
+		Each pixel is represented by 16 bits in GDRAM which represents the intensity of each colour. In the default setting,
+		red has 5 bits, green has 5 bits and blue has 5 bits. The organisation of the bit (and the datastream) is as follows:
+
+		B_4, B_3, B_2, B_1, B_0, G_5, G_4, G_3, G_2, G_1, G_0, R_4, R_3, R_2, R_1, R_0
+
+		The frame array passed to this function has three 8 bit integers allocated to each pixel. To translate these into the
+		16 bit structure outlined above, bitmasking is used below.
+	*/
+	spi_status_t status;
+	uint16_t colour = 0;
+
+	/* Drive CS low. */
+	GPIO_DRV_ClearPinOutput(kSSD1331PinCSn);
+
+	/* Drive DC high. This ensures that the SSD1331 is expecting DATA as opposed to a command. */
+	GPIO_DRV_SetPinOutput(kSSD1331PinDC);
+
+	for (uint8_t row = FRAME_NUM_ROWS - 1; row >= 0; row--) {
+		for (uint8_t col = 0; col < FRAME_NUM_COLS; col++) {
+
+			/* Build 16 bit representation. */
+			colour = (frame[row][col][R] << RED_LEFT_SHIFT) + (frame[row][col][G] << GREEN_LEFT_SHIFT) + (frame[row][col][B] << BLUE_LEFT_SHIFT);
+
+			/* Split 16 bit representation into two bytes to store in payload_bytes. */
+			payload_bytes[0] = (0xFF00 & colour) >> 8; 	/* MSB. */
+			payload_bytes[1] = (0xFF & colour);			/* LSB. */
+
+			status = SPI_DRV_MasterTransferBlocking(
+				0,			/* Master instance. */
+				NULL		/* spi_master_user_config_t */,
+				(const uint8_t * restrict) &payload_bytes[0],
+				(uint8_t * restrict) &in_buffer[0],
+				2			/* Transfer size in bytes */,
+				1000		/* Timeout in microseconds (unlike I2C which is ms) */);
+
+			/* Column pointer in SSD1331 internally updates here. */
+		}
+		/* Row column pointer in SSD1331 internally updates here. */
+	}
+
+	/* Upon the final data read, the SSD1331 resets the internal row and column pointers to (0, 0) (top left). */
+
+	/* Drive CS high to complete frame writing interaction. */
+	GPIO_DRV_SetPinOutput(kSSD1331PinCSn);
+}
+
+void devSSD1331init(void)
+{
+		/*
 	 *	Override Warp firmware's use of these pins.
 	 *
 	 *	Re-configure SPI to be on PTA8 and PTA9 for MOSI and SCK respectively.
@@ -131,12 +195,8 @@ void devSSD1331init(void)
 	writeCommand(kSSD1331CommandCONTRASTC);		// 0x83
 	writeCommand(0x7D);
 	writeCommand(kSSD1331CommandDISPLAYON);		// Turn on oled panel
-	writeCommand(kSSD1331CommandCLEAR);
-	writeCommand(0x00);
-	writeCommand(0x00);
-	writeCommand(FRAME_NUM_COLS - 1);
-	writeCommand(FRAME_NUM_ROWS - 1);
-	
+	SEGGER_RTT_WriteString(0, "\r\n\tDone with initialization sequence...\n");
+
 	/*
 		The end of the standard initialisation sequence.
 
@@ -149,46 +209,4 @@ void devSSD1331init(void)
 	writeCommand(kSSD1331CommandSETROW);
 	writeCommand(0x00);
 	writeCommand(FRAME_NUM_ROWS - 1);
-}
-
-/*
-	With a frame fully drawn in the 'frame' array, we now write it to the Graphics Display RAM
-	(GDRAM) within the chip over an SPI interface. Please see the SSD1331 datasheet for more information.
-
-	It is wise to consider FR synchronisation with the writing process of the SSD1331 to the display. Implemented
-	properly, a 'shearing' effect is minimised which would otherwise be a problem as the GDRAM is written to
-	asynchronously.
-*/
-void writeFrame(uint8_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS][FRAME_NUM_COLOURS])
-{
-	/*
-		The default writing format in which the SSD1331 chip expects to receive data is column wise. That is,
-		each time a data write is performed, the chip internally increments its column pointer such that the
-		next data byte is written into the sequestial GDRAM address. Fortunately, that agrees well with C style
-		indexing, so we leverage this below.
-
-		As a reminder, the GDRAM expects to be written to from top left to bottom right. However, our 'frame' coordinate system
-		extends from the bottom left to the rop right. Therefore, we need to iterate over the frame appropriately (C style indexing).
-	*/
-
-	for (uint8_t row = FRAME_NUM_ROWS - 1; row >= 0; row--) {
-		for (uint8_t col = 0; col < FRAME_NUM_COLS; col++) {
-			/* Red. */
-			writeCommand(kSSD1331CommandCONTRASTA);
-			writeCommand(frame[row][col][R]);
-
-			/* Green. */
-			writeCommand(kSSD1331CommandCONTRASTB);
-			writeCommand(frame[row][col][G]);
-
-			/* Blue. */
-			writeCommand(kSSD1331CommandCONTRASTC);
-			writeCommand(frame[row][col][B]);
-
-			/* Column pointer in SSD1331 internally updates here. */
-		}
-		/* Row column pointer in SSD1331 internally updates here. */
-	}
-
-	/* Upon the final data read, the SSD1331 resets the internal row and column pointers to (0, 0) (top left). */
 }

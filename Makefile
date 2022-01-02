@@ -22,6 +22,9 @@ warp:
 	cp src/boot/ksdk1.1.0/CMakeLists-Warp.txt			build/ksdk1.1/work/demos/Warp/armgcc/Warp/CMakeLists.txt
 	cp src/boot/ksdk1.1.0/graphics/devSSD1331.*				build/ksdk1.1/work/demos/Warp/src/
 	cp src/boot/ksdk1.1.0/graphics/graphics_render.*				build/ksdk1.1/work/demos/Warp/src/
+	cp src/boot/ksdk1.1.0/graphics/draw_line.*				build/ksdk1.1/work/demos/Warp/src/
+	cp src/boot/ksdk1.1.0/graphics/draw_triangle.*				build/ksdk1.1/work/demos/Warp/src/
+	cp src/boot/ksdk1.1.0/graphics/graphics.*				build/ksdk1.1/work/demos/Warp/src/
 	cp src/boot/ksdk1.1.0/devBMX055.*				build/ksdk1.1/work/demos/Warp/src/
 	cp src/boot/ksdk1.1.0/devADXL362.*				build/ksdk1.1/work/demos/Warp/src/
 	cp src/boot/ksdk1.1.0/devMMA8451Q.*				build/ksdk1.1/work/demos/Warp/src/
