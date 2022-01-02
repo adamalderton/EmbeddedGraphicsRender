@@ -24,8 +24,7 @@ enum
 	kSSD1331PinRST		= GPIO_MAKE_PIN(HW_GPIOB, 0),
 };
 
-static int
-writeCommand(uint8_t commandByte)
+static int writeCommand(uint8_t commandByte)
 {
 	spi_status_t status;
 
@@ -44,12 +43,13 @@ writeCommand(uint8_t commandByte)
 	GPIO_DRV_ClearPinOutput(kSSD1331PinDC);
 
 	payloadBytes[0] = commandByte;
-	status = SPI_DRV_MasterTransferBlocking(0	/* master instance */,
+	status = SPI_DRV_MasterTransferBlocking(
+					0,			/* Master instance. */
 					NULL		/* spi_master_user_config_t */,
-					(const uint8_t * restrict)&payloadBytes[0],
-					(uint8_t * restrict)&inBuffer[0],
-					1		/* transfer size */,
-					1000		/* timeout in microseconds (unlike I2C which is ms) */);
+					(const uint8_t * restrict) &payloadBytes[0],
+					(uint8_t * restrict) &inBuffer[0],
+					1			/* Transfer size */,
+					1000		/* Timeout in microseconds (unlike I2C which is ms) */);
 
 	/*
 	 *	Drive /CS high
@@ -59,10 +59,7 @@ writeCommand(uint8_t commandByte)
 	return status;
 }
 
-
-
-int
-devSSD1331init(void)
+void devSSD1331init(void)
 {
 	/*
 	 *	Override Warp firmware's use of these pins.
@@ -134,52 +131,10 @@ devSSD1331init(void)
 	writeCommand(kSSD1331CommandCONTRASTC);		// 0x83
 	writeCommand(0x7D);
 	writeCommand(kSSD1331CommandDISPLAYON);		// Turn on oled panel
-	SEGGER_RTT_WriteString(0, "\r\n\tDone with initialization sequence...\n");
-
-	/*
-	 *	To use fill commands, you will have to issue a command to the display to enable them. See the manual.
-	 */
-	writeCommand(kSSD1331CommandFILL);
-	writeCommand(0x01);
-	SEGGER_RTT_WriteString(0, "\r\n\tDone with enabling fill...\n");
-
-	/*
-	 *	Clear Screen
-	 */
 	writeCommand(kSSD1331CommandCLEAR);
 	writeCommand(0x00);
 	writeCommand(0x00);
 	writeCommand(0x5F);
 	writeCommand(0x3F);
-	SEGGER_RTT_WriteString(0, "\r\n\tDone with screen clear...\n");
-
-	/* Enter draw rectangle mode. */
-	writeCommand(kSSD1331CommandDRAWRECT);
-
-	/*
-		Set starting column.
-		Set starting row.
-		Set finishing column.
-		Set finishing row.
-
-		Screen has 95 columns and 63 rows, hence whole screen is specified below.
-	*/
-	writeCommand(0);
-	writeCommand(0);
-	writeCommand(95);
-	writeCommand(63);
-
-	/* Set outline colour. */
-	writeCommand(0);
-	writeCommand(0);
-	writeCommand(0xFF);
-
-	/* Set rectangle fill colour. */
-	writeCommand(0xFF);
-	writeCommand(0);
-	writeCommand(0);
-
-	SEGGER_RTT_WriteString(0, "\r\n\tDone with draw rectangle...\n");
-
-	return 0;
+	warpPrint("Screen initialised...\n");
 }

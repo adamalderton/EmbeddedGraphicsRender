@@ -2,6 +2,11 @@
  *	See https://github.com/adafruit/Adafruit-SSD1331-OLED-Driver-Library-for-Arduino for the Arduino driver.
  */
 
+#ifndef GRAPHICS
+	#include "graphics.h"
+	#define GRAPHICS
+#endif
+
 typedef enum
 {
 	kSSD1331ColororderRGB		= 1,
@@ -42,4 +47,5 @@ typedef enum
 	kSSD1331CommandVCOMH		= 0xBE,
 } SSD1331Commands;
 
-int	devSSD1331init(void);
+void devSSD1331init(void);
+void writeFrame(uint8_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS][FRAME_NUM_COLOURS]);
