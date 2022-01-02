@@ -62,8 +62,6 @@
 #include "gpio_pins.h"
 #include "SEGGER_RTT.h"
 
-#include "graphics/graphics_render.h""
-
 
 #define							kWarpConstantStringI2cFailure		"\rI2C failed, reg 0x%02x, code %d\n"
 #define							kWarpConstantStringErrorInvalidVoltage	"\rInvalid supply voltage [%d] mV!"
@@ -176,6 +174,10 @@
 #if (WARP_BUILD_ENABLE_DEVBGX)
 	#include "devBGX.h"
 	volatile WarpUARTDeviceState			deviceBGXState;
+#endif
+
+#if (WARP_BUILD_ENABLE_GRAPHICS)
+	#include "graphics/graphics_render.h"
 #endif
 
 
@@ -2019,7 +2021,21 @@ main(void)
 		}
 	#endif
 
-	devSSD1331init();
+	/********************************************************************************
+	
+	If WARP_BUILD_ENABLE_GRAPHICS is defined, then only the graphics
+	demo is processed by Warp. Therefore, for simplicity, the main menu loop
+	has been stored in the #else preprocessor wrapper. If the graphics
+	functionality is needed in conjunction with other sensor functionality
+	then these preprocessor directives can be removed or altered as appropriate.
+
+	*********************************************************************************/
+
+	#if (WARP_BUILD_ENABLE_GRAPHICS)
+		graphicsDemo();
+
+		warpPrint("--- Graphics demo complete! ---\n");
+	#else
 
 	while (1)
 	{
@@ -2781,6 +2797,8 @@ main(void)
 			}
 		}
 	}
+
+	#endif
 
 	return 0;
 }

@@ -134,7 +134,61 @@ void devSSD1331init(void)
 	writeCommand(kSSD1331CommandCLEAR);
 	writeCommand(0x00);
 	writeCommand(0x00);
-	writeCommand(0x5F);
-	writeCommand(0x3F);
-	warpPrint("Screen initialised...\n");
+	writeCommand(FRAME_NUM_COLS - 1);
+	writeCommand(FRAME_NUM_ROWS - 1);
+	
+	/*
+		The end of the standard initialisation sequence.
+
+		Next, we set the write area of the screen (the whole screen).
+	*/
+	writeCommand(kSSD1331CommandSETCOLUMN);
+	writeCommand(0x00);
+	writeCommand(FRAME_NUM_COLS - 1);
+	
+	writeCommand(kSSD1331CommandSETROW);
+	writeCommand(0x00);
+	writeCommand(FRAME_NUM_ROWS - 1);
+}
+
+/*
+	With a frame fully drawn in the 'frame' array, we now write it to the Graphics Display RAM
+	(GDRAM) within the chip over an SPI interface. Please see the SSD1331 datasheet for more information.
+
+	It is wise to consider FR synchronisation with the writing process of the SSD1331 to the display. Implemented
+	properly, a 'shearing' effect is minimised which would otherwise be a problem as the GDRAM is written to
+	asynchronously.
+*/
+void writeFrame(uint8_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS][FRAME_NUM_COLOURS])
+{
+	/*
+		The default writing format in which the SSD1331 chip expects to receive data is column wise. That is,
+		each time a data write is performed, the chip internally increments its column pointer such that the
+		next data byte is written into the sequestial GDRAM address. Fortunately, that agrees well with C style
+		indexing, so we leverage this below.
+
+		As a reminder, the GDRAM expects to be written to from top left to bottom right. However, our 'frame' coordinate system
+		extends from the bottom left to the rop right. Therefore, we need to iterate over the frame appropriately (C style indexing).
+	*/
+
+	for (uint8_t row = FRAME_NUM_ROWS - 1; row >= 0; row--) {
+		for (uint8_t col = 0; col < FRAME_NUM_COLS; col++) {
+			/* Red. */
+			writeCommand(kSSD1331CommandCONTRASTA);
+			writeCommand(frame[row][col][R]);
+
+			/* Green. */
+			writeCommand(kSSD1331CommandCONTRASTB);
+			writeCommand(frame[row][col][G]);
+
+			/* Blue. */
+			writeCommand(kSSD1331CommandCONTRASTC);
+			writeCommand(frame[row][col][B]);
+
+			/* Column pointer in SSD1331 internally updates here. */
+		}
+		/* Row column pointer in SSD1331 internally updates here. */
+	}
+
+	/* Upon the final data read, the SSD1331 resets the internal row and column pointers to (0, 0) (top left). */
 }
