@@ -18,14 +18,17 @@
     are implemented.
  */
 void drawPixel(
-    uint8_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS][FRAME_NUM_COLOURS],
+    uint8_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS],
     uint8_t x,
     uint8_t y,
-    uint8_t rgb[FRAME_NUM_COLOURS]
+    uint8_t colour,
+    uint8_t distance
 )
 {
     uint8_t row = FRAME_NUM_ROWS - y - 1;
     uint8_t col = x;
 
-    WRITE_TO_FRAME(frame, row, col, rgb);
+    WRITE_COLOUR_TO_PIXEL(frame, row, col, colour);
+    
+    WRITE_DISTANCE_TO_PIXEL(frame, row, col, distance);
 }

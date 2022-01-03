@@ -1,5 +1,10 @@
-#define FRAME_NUM_ROWS 64
-#define FRAME_NUM_COLS 96
+#ifndef STDINT
+	#include <stdint.h>
+	#define STDINT
+#endif
+
+#define FRAME_NUM_ROWS 40
+#define FRAME_NUM_COLS 40
 #define FRAME_NUM_COLOURS 3
 
 /*
@@ -10,13 +15,31 @@
 */
 #define MAX_COLOUR 31
 
-#define WRITE_TO_FRAME(frame, row, col, rgb) \
-    frame[row][col][R] = rgb[R]; \
-    frame[row][col][G] = rgb[G]; \
-    frame[row][col][B] = rgb[B];
+/*
+    Used for simple 2D demos. When this is passed to functions like drawPixel,
+    it ensures the pixel drawn is as bright as possible.
+*/
+#define CLOSEST_DISTANCE 0
 
-#define GET_FRAME_VALUE(frame, x, y, channel) \
-    ( frame[FRAME_NUM_ROWS - y - 1][x][channel] )
+/*
+    Colour can be directly written as, in theory, shapes are rendered in the
+    correct order.
+
+    Additionally, distances should be written to the frame element AFTER the colour is written.
+*/
+#define WRITE_COLOUR_TO_PIXEL(frame, row, col, colour) \
+    frame[row][col] = colour;
+
+/*
+    Remember, the left-most 6 bits represent colour, so the distance is left shifted.
+    Therefore, dist cannot be greater than 63. That is, 0 and 63 must represent the
+    distance range.
+*/
+#define WRITE_DISTANCE_TO_PIXEL(frame, row, col, dist) \
+    frame[row][col] += (dist << 2);
+
+#define GET_PIXEL_VALUE(frame, x, y) \
+    ( frame[FRAME_NUM_ROWS - y - 1][x] )
 
 #define COPY_2D_VERTEX(dest, src) \
     dest[X] = src[X]; \
@@ -29,9 +52,10 @@ typedef enum {
 } Dims;
 
 typedef enum {
-    R,
-    G,
-    B
+    K = 0,  /* Black (Pixel OFF), 00 in binary. */
+    R = 1,  /* Red, 01 in binary. */
+    G = 2,  /* Green, 10 in binary. */
+    B = 3   /* Blue, 11 in binary. */
 } Colours;
 
 /*
@@ -50,8 +74,9 @@ typedef enum {
     are implemented.
  */
 void drawPixel(
-    uint8_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS][FRAME_NUM_COLOURS],
+    uint8_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS],
     uint8_t x,
     uint8_t y,
-    uint8_t rgb[FRAME_NUM_COLOURS]
+    uint8_t colour,
+    uint8_t distance,
 );

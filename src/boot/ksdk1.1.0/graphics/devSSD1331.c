@@ -222,14 +222,14 @@ void devSSD1331init(void)
 	 */
 	writeCommand(kSSD1331CommandDISPLAYOFF);	// 0xAE
 	writeCommand(kSSD1331CommandSETREMAP);		// 0xA0
-	writeCommand(0x72);				// RGB Color
+	writeCommand(0x72);							// RGB Color
 	writeCommand(kSSD1331CommandSTARTLINE);		// 0xA1
 	writeCommand(0x0);
 	writeCommand(kSSD1331CommandDISPLAYOFFSET);	// 0xA2
 	writeCommand(0x0);
 	writeCommand(kSSD1331CommandNORMALDISPLAY);	// 0xA4
 	writeCommand(kSSD1331CommandSETMULTIPLEX);	// 0xA8
-	writeCommand(0x3F);				// 0x3F 1/64 duty
+	writeCommand(0x3F);							// 0x3F 1/64 duty
 	writeCommand(kSSD1331CommandSETMASTER);		// 0xAD
 	writeCommand(0x8E);
 	writeCommand(kSSD1331CommandPOWERMODE);		// 0xB0
@@ -237,7 +237,7 @@ void devSSD1331init(void)
 	writeCommand(kSSD1331CommandPRECHARGE);		// 0xB1
 	writeCommand(0x31);
 	writeCommand(kSSD1331CommandCLOCKDIV);		// 0xB3
-	writeCommand(0xF0);				// 7:4 = Oscillator Frequency, 3:0 = CLK Div Ratio (A[3:0]+1 = 1..16)
+	writeCommand(0xF0);							// 7:4 = Oscillator Frequency, 3:0 = CLK Div Ratio (A[3:0]+1 = 1..16)
 	writeCommand(kSSD1331CommandPRECHARGEA);	// 0x8A
 	writeCommand(0x64);
 	writeCommand(kSSD1331CommandPRECHARGEB);	// 0x8B
@@ -256,7 +256,8 @@ void devSSD1331init(void)
 	writeCommand(0x50);
 	writeCommand(kSSD1331CommandCONTRASTC);		// 0x83
 	writeCommand(0x7D);
-	writeCommand(kSSD1331CommandDISPLAYON);		// Turn on oled panel
+	writeCommand(kSSD1331CommandDISPLAYON);		// Turn on OLED panel
+
 	SEGGER_RTT_WriteString(0, "\r\n\tDone with initialization sequence...\n");
 
 	writeCommand(kSSD1331CommandCLEAR);
@@ -266,45 +267,41 @@ void devSSD1331init(void)
 	writeCommand(0x3F);
 	SEGGER_RTT_WriteString(0, "\r\n\tDone with screen clear...\n");
 
-	writeCommand(kSSD1331CommandFILL);
-	writeCommand(0x01);
-	SEGGER_RTT_WriteString(0, "\r\n\tDone with enabling fill...\n");
-
-	/* Enter draw rectangle mode. */
-	writeCommand(kSSD1331CommandDRAWRECT);
+	SEGGER_RTT_WriteString(0, "\r\n\tShow a sample rectangle to confirm successfull interaction with display\n");
 
 	/*
-		Set starting column.
-		Set starting row.
-		Set finishing column.
-		Set finishing row.
-
-		Screen has 95 columns and 63 rows, hence whole screen is specified below.
+		Draw a blue rectangle with a green border to test the screen.
 	*/
-	writeCommand(0);
-	writeCommand(0);
-	writeCommand(95);
-	writeCommand(63);
+	writeCommand(kSSD1331CommandFILL);
+	writeCommand(0x01);
+
+	writeCommand(kSSD1331CommandDRAWRECT);
+
+	/* Screen has 95 columns and 63 rows, hence whole screen is specified below. */
+	writeCommand(0x00);
+	writeCommand(0x00);
+	writeCommand(0x5F);
+	writeCommand(0x3F);
 
 	/* Set outline colour (brightest green). */
 	writeCommand(0);
 	writeCommand(0xFF);
 	writeCommand(0);
 
-	/* Set rectangle fill colour (brightest green). */
+	/* Set rectangle fill colour (brightest blue). */
 	writeCommand(0);
 	writeCommand(0);
 	writeCommand(0xFF);
 
-	OSA_TimeDelay(3000);
+	/* Show rectangle for 1 second. */
+	OSA_TimeDelay(1000);
 
-		
 	writeCommand(kSSD1331CommandCLEAR);
 	writeCommand(0x00);
 	writeCommand(0x00);
 	writeCommand(0x5F);
 	writeCommand(0x3F);
-	SEGGER_RTT_WriteString(0, "\r\n\tDone with screen clear...\n");
+	SEGGER_RTT_WriteString(0, "\r\n\tDone with sample rectangle.\n");
 
 	/*
 		The end of the standard initialisation sequence.
@@ -313,9 +310,13 @@ void devSSD1331init(void)
 	*/
 	writeCommand(kSSD1331CommandSETCOLUMN);
 	writeCommand(0x00);
-	writeCommand(FRAME_NUM_COLS - 1);
+	// writeCommand(FRAME_NUM_COLS - 1);
+	writeCommand(96 - 1);
 	
 	writeCommand(kSSD1331CommandSETROW);
 	writeCommand(0x00);
-	writeCommand(FRAME_NUM_ROWS - 1);
+	// writeCommand(FRAME_NUM_ROWS - 1);
+	writeCommand(64 - 1);
+
+	SEGGER_RTT_WriteString(0, "\r\n\tDone with initialisation sequence.\n");
 }

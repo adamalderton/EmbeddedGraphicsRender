@@ -1,6 +1,10 @@
 /*
  *	See https://github.com/adafruit/Adafruit-SSD1331-OLED-Driver-Library-for-Arduino for the Arduino driver.
  */
+#ifndef STDINT
+	#include <stdint.h>
+	#define STDINT
+#endif
 
 #ifndef GRAPHICS
 	#include "graphics.h"
@@ -63,4 +67,4 @@ typedef enum
 } SSD1331Commands;
 
 void devSSD1331init(void);
-void writeFrame(uint8_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS][FRAME_NUM_COLOURS]);
+void writeFrame(uint8_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS]);

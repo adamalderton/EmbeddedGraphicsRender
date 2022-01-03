@@ -7,12 +7,13 @@
     See drawLine() for further documentation.
 */
 static void drawLineOctant1(
-    uint8_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS][FRAME_NUM_COLOURS],
+    uint8_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS],
     uint8_t x0,
     uint8_t y0,
     uint8_t dx,
     uint8_t dy,
-    uint8_t rgb[FRAME_NUM_COLOURS],
+    uint8_t colour,
+    uint8_t distance,
     int16_t x_direction /* Storing as int16_t prevents repeated casting. */
 )
 {
@@ -24,7 +25,7 @@ static void drawLineOctant1(
     dxx2minusdyx2 = dxx2 - (int16_t) (2 * dy);
     err = dxx2 - (int16_t) dy;
 
-    drawPixel(frame, x0, y0, rgb); /* Draw first pixel. */
+    drawPixel(frame, x0, y0, colour, CLOSEST_DISTANCE); /* Draw first pixel. */
     while ( dy-- > 0 ) {
         
         /* Test advancement of the x coordinate. */
@@ -36,7 +37,7 @@ static void drawLineOctant1(
         }
 
         y0++;
-        drawPixel(frame, x0, y0, rgb);
+        drawPixel(frame, x0, y0, colour, CLOSEST_DISTANCE);
     }
 }
 
@@ -45,12 +46,13 @@ static void drawLineOctant1(
     See drawLine() for further documentation.
 */
 static void drawLineOctant0(
-    uint8_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS][FRAME_NUM_COLOURS],
+    uint8_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS],
     uint8_t x0,
     uint8_t y0,
     uint8_t dx,
     uint8_t dy,
-    uint8_t rgb[FRAME_NUM_COLOURS],
+    uint8_t colour,
+    uint8_t distance,
     int16_t x_direction /* Storing as int16_t prevents repeated casting. */
 )
 {
@@ -62,7 +64,7 @@ static void drawLineOctant0(
     dyx2minusdxx2 = dyx2 - (int16_t) (2 * dx);
     err = dyx2 - (int16_t) dx;
 
-    drawPixel(frame, x0, y0, rgb); /* Draw first pixel. */
+    drawPixel(frame, x0, y0, colour, CLOSEST_DISTANCE); /* Draw first pixel. */
     while ( dx-- > 0 ) {
 
         /* Test advancement of the y coordinate. */
@@ -75,7 +77,7 @@ static void drawLineOctant0(
         }
 
         x0 += x_direction;
-        drawPixel(frame, x0, y0, rgb);
+        drawPixel(frame, x0, y0, colour, CLOSEST_DISTANCE);
     }
 }
 
@@ -98,10 +100,11 @@ static void drawLineOctant0(
     It then calls the correct octant line drawing procedure.
 */
 void drawLine(
-    uint8_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS][FRAME_NUM_COLOURS],
+    uint8_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS],
     uint8_t point_0[2],
     uint8_t point_1[2],
-    uint8_t rgb[FRAME_NUM_COLOURS]
+    uint8_t colour,
+    uint8_t distance
 )
 {
     uint8_t temp;
@@ -138,17 +141,17 @@ void drawLine(
 
     if (dx > 0) {
         if (dx > dy) {
-            drawLineOctant0(frame, x0, y0, (uint8_t) dx, (uint8_t) dy, rgb, 1);
+            drawLineOctant0(frame, x0, y0, (uint8_t) dx, (uint8_t) dy, colour, distance, 1);
         } else {
-            drawLineOctant1(frame, x0, y0, (uint8_t) dx, (uint8_t) dy, rgb, 1);
+            drawLineOctant1(frame, x0, y0, (uint8_t) dx, (uint8_t) dy, colour, distance, 1);
         }
     } else {
         dx = -dx; /* Ensures that line is only in octant 1 or 0. */
 
         if (dx > dy) {
-            drawLineOctant0(frame, x0, y0, (uint8_t) dx, (uint8_t) dy, rgb, -1);
+            drawLineOctant0(frame, x0, y0, (uint8_t) dx, (uint8_t) dy, colour, distance, -1);
         } else {
-            drawLineOctant1(frame, x0, y0, (uint8_t) dx, (uint8_t) dy, rgb, -1);
+            drawLineOctant1(frame, x0, y0, (uint8_t) dx, (uint8_t) dy, colour, distance, -1);
         }
     }
 }
@@ -158,10 +161,11 @@ void drawHorizontalLine(
     uint8_t y,
     uint8_t x0,
     uint8_t x1,
-    uint8_t rgb[FRAME_NUM_COLOURS]
+    uint8_t colour,
+    uint8_t distance
 )
 {
     for (uint8_t x = x0; x <= x1; x++) {
-        drawPixel(frame, x, y, rgb);
+        drawPixel(frame, x, y, colour, distance);
     }
 }
