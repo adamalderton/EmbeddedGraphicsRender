@@ -13,7 +13,7 @@
 	cp ../../src/boot/ksdk1.1.0/warp-kl03-ksdk1.1-powermodes.c	work/demos/Warp/src/
 	cp ../../src/boot/ksdk1.1.0/warp.h				work/demos/Warp/src/
 	cp ../../src/boot/ksdk1.1.0/graphics/devSSD1331.*			work/demos/Warp/src/
-	cp ../../src/boot/ksdk1.1.0/graphics/graphics_render.*			work/demos/Warp/src/
+	cp ../../src/boot/ksdk1.1.0/graphics/graphics_demo.*			work/demos/Warp/src/
 	cp ../../src/boot/ksdk1.1.0/graphics/draw_line.*			work/demos/Warp/src/
 	cp ../../src/boot/ksdk1.1.0/graphics/draw_triangle.*			work/demos/Warp/src/
 	cp ../../src/boot/ksdk1.1.0/graphics/graphics.*			work/demos/Warp/src/

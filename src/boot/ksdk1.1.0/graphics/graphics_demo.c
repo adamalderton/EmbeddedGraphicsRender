@@ -18,5 +18,7 @@ void graphicsDemo(void)
 
 	devSSD1331init();
 
+	writeFrame();
+
 	warpPrint("devSSD1331init complete!\n");
 }

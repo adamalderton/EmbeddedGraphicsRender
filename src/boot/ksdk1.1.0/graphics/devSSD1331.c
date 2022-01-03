@@ -66,7 +66,8 @@ static int writeCommand(uint8_t commandByte)
 	properly, a 'shearing' effect is minimised which would otherwise be a problem as the GDRAM is written to
 	asynchronously.
 */
-void writeFrame(uint8_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS][FRAME_NUM_COLOURS])
+// void writeFrame(uint8_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS])
+void writeFrame(void)
 {
 	/*
 		The default writing format in which the SSD1331 chip expects to receive data is column wise. That is,
@@ -82,11 +83,22 @@ void writeFrame(uint8_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS][FRAME_NUM_COLOURS]
 
 		B_4, B_3, B_2, B_1, B_0, G_5, G_4, G_3, G_2, G_1, G_0, R_4, R_3, R_2, R_1, R_0
 
-		The frame array passed to this function has three 8 bit integers allocated to each pixel. To translate these into the
-		16 bit structure outlined above, bitmasking is used below.
+		Bitmasking is used below to extract and compute the final colour from the 8 bits representing each pixel.
 	*/
-	spi_status_t status;
-	uint16_t colour = 0;
+
+	uint16_t payload;
+	uint8_t pixel_value; /* Contains both colour and 'distance'. */
+
+	/*
+		Stores the amounts by which to left shift each colour such that it is displayed appropriately. This
+		array is iterated over as necessary later (hence not an enum). FRAME_NUM_COLOURS + 1 is used to account for black (no colour).
+	*/
+	uint8_t left_shifts[FRAME_NUM_COLOURS + 1] = {
+		0,	/* Black left shift (not needed so set to 0). */
+		RED_LEFT_SHIFT,
+		GREEN_LEFT_SHIFT,
+		BLUE_LEFT_SHIFT
+	};
 
 	/* Drive CS low. */
 	GPIO_DRV_ClearPinOutput(kSSD1331PinCSn);
@@ -94,6 +106,7 @@ void writeFrame(uint8_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS][FRAME_NUM_COLOURS]
 	/* Drive DC high. This ensures that the SSD1331 is expecting DATA as opposed to a command. */
 	GPIO_DRV_SetPinOutput(kSSD1331PinDC);
 
+	uint16_t colour;
     for (uint16_t i = 0; i < 20 * 96; i++) {
 
         /* Build 16 bit representation. */
@@ -103,7 +116,7 @@ void writeFrame(uint8_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS][FRAME_NUM_COLOURS]
         payload_bytes[0] = (0xFF00 & colour) >> 8; 	/* MSB. */
         payload_bytes[1] = (0xFF & colour);			/* LSB. */
 
-        status = SPI_DRV_MasterTransferBlocking(
+        SPI_DRV_MasterTransferBlocking(
             0,			/* Master instance. */
             NULL		/* spi_master_user_config_t */,
             (const uint8_t * restrict) &payload_bytes[0],
@@ -123,7 +136,7 @@ void writeFrame(uint8_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS][FRAME_NUM_COLOURS]
         payload_bytes[0] = (0xFF00 & colour) >> 8; 	/* MSB. */
         payload_bytes[1] = (0xFF & colour);			/* LSB. */
 
-        status = SPI_DRV_MasterTransferBlocking(
+        SPI_DRV_MasterTransferBlocking(
             0,			/* Master instance. */
             NULL		/* spi_master_user_config_t */,
             (const uint8_t * restrict) &payload_bytes[0],
@@ -134,52 +147,65 @@ void writeFrame(uint8_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS][FRAME_NUM_COLOURS]
         /* Column pointer in SSD1331 internally updates here. */
     }
 
-    for (uint16_t i = 40 * 96; i < 60 * 96; i++) {
+    // for (uint16_t i = 40 * 96; i < 60 * 96; i++) {
 
-        /* Build 16 bit representation. */
-        colour = (0 << RED_LEFT_SHIFT) + (0 << GREEN_LEFT_SHIFT) + (31 << BLUE_LEFT_SHIFT);
+    //     /* Build 16 bit representation. */
+    //     colour = (0 << RED_LEFT_SHIFT) + (0 << GREEN_LEFT_SHIFT) + (31 << BLUE_LEFT_SHIFT);
 
-        /* Split 16 bit representation into two bytes to store in payload_bytes. */
-        payload_bytes[0] = (0xFF00 & colour) >> 8; 	/* MSB. */
-        payload_bytes[1] = (0xFF & colour);			/* LSB. */
+    //     /* Split 16 bit representation into two bytes to store in payload_bytes. */
+    //     payload_bytes[0] = (0xFF00 & colour) >> 8; 	/* MSB. */
+    //     payload_bytes[1] = (0xFF & colour);			/* LSB. */
 
-        status = SPI_DRV_MasterTransferBlocking(
-            0,			/* Master instance. */
-            NULL		/* spi_master_user_config_t */,
-            (const uint8_t * restrict) &payload_bytes[0],
-            (uint8_t * restrict) &in_buffer[0],
-            2			/* Transfer size in bytes */,
-            1000		/* Timeout in microseconds (unlike I2C which is ms) */);
+    //     status = SPI_DRV_MasterTransferBlocking(
+    //         0,			/* Master instance. */
+    //         NULL		/* spi_master_user_config_t */,
+    //         (const uint8_t * restrict) &payload_bytes[0],
+    //         (uint8_t * restrict) &in_buffer[0],
+    //         2			/* Transfer size in bytes */,
+    //         1000		/* Timeout in microseconds (unlike I2C which is ms) */);
 
-        /* Column pointer in SSD1331 internally updates here. */
-    }
+    //     /* Column pointer in SSD1331 internally updates here. */
+    // }
 
 	// for (uint8_t row = FRAME_NUM_ROWS - 1; row >= 0; row--) {
 	// 	for (uint8_t col = 0; col < FRAME_NUM_COLS; col++) {
+	// 		payload = 0;
 
-	// 		/* Build 16 bit representation. */
-	// 		colour = (frame[row][col][R] << RED_LEFT_SHIFT) + (frame[row][col][G] << GREEN_LEFT_SHIFT) + (frame[row][col][B] << BLUE_LEFT_SHIFT);
+	// 		/* Get pixel value, extract colour and distance. */
+	// 		pixel_value = GET_PIXEL_VALUE_ROWCOL(frame, row, col);
+
+	// 		/*
+	// 			Calculate final 'colour' to store in the 16 bit payload.
+				
+	// 			This is simply the ratio of the distance to the maximum distance mapped to the minimum and maximum intensity.
+				
+	// 			Truncating the integer division is a good enough result considering the costly rounding alternative.
+				
+	// 			Left shift the result as appropriate such that thecorrect colour is displayed.
+
+	// 			Colour = pixel_value & COLOUR_BITMASK
+	// 			Distance = pixel_value & DISTANCE_BITMASK
+	// 		*/
+	// 		payload =  ( MAX_COLOUR_INTENSITY -  (MAX_COLOUR_INTENSITY * ( (pixel_value & DISTANCE_BITMASK) / (MAXIMUM_DISTANCE) ) ) ) << left_shifts[pixel_value & COLOUR_BITMASK];
 
 	// 		/* Split 16 bit representation into two bytes to store in payload_bytes. */
-	// 		payload_bytes[0] = (0xFF00 & colour) >> 8; 	/* MSB. */
-	// 		payload_bytes[1] = (0xFF & colour);			/* LSB. */
+	// 		payload_bytes[0] = (0xFF00 & payload) >> 8; 	/* MSB. */
+	// 		payload_bytes[1] = (0xFF & payload);			/* LSB. */
 
-	// 		status = SPI_DRV_MasterTransferBlocking(
+	// 		SPI_DRV_MasterTransferBlocking(
 	// 			0,			/* Master instance. */
 	// 			NULL		/* spi_master_user_config_t */,
 	// 			(const uint8_t * restrict) &payload_bytes[0],
 	// 			(uint8_t * restrict) &in_buffer[0],
 	// 			2			/* Transfer size in bytes */,
 	// 			1000		/* Timeout in microseconds (unlike I2C which is ms) */);
-			
-	// 		warpPrint("SPI Status: %d\n", status);
 
 	// 		/* Column pointer in SSD1331 internally updates here. */
 	// 	}
 	// 	/* Row column pointer in SSD1331 internally updates here. */
 	// }
 
-	/* Upon the final data read, the SSD1331 resets the internal row and column pointers to (0, 0) (top left). */
+	// /* Upon the final data read, the SSD1331 resets the internal row and column pointers. */
 
 	/* Drive CS high to complete frame writing interaction. */
 	GPIO_DRV_SetPinOutput(kSSD1331PinCSn);

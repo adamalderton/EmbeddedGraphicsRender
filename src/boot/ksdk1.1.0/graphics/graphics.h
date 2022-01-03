@@ -11,15 +11,24 @@
     b11111.
     
     The SSD1331 has 5 bits for each colour (6 for green but that's truncated in this software)
-    Therefore, the colours sent to the display need to normalised to be between 0 and 31. (b00000 -> b11111)
+    Therefore, the intensity sent to the display needs to be normalised to be between 0 and 31. (b00000 -> b11111)
 */
-#define MAX_COLOUR 31
+#define MAX_COLOUR_INTENSITY 31
 
 /*
-    Used for simple 2D demos. When this is passed to functions like drawPixel,
-    it ensures the pixel drawn is as bright as possible.
+    THe distance quantity must fit within 6 bits.
 */
 #define CLOSEST_DISTANCE 0
+#define MAXIMUM_DISTANCE 63
+
+/*
+    Used to extract colour and distance out of 8 bit pixel value.
+
+    Colour is stored in the rightmost bytes hence the bitmask is 00000011.
+    Distance is stored in the other 6 hence 11111100.
+*/
+#define COLOUR_BITMASK 3
+#define DISTANCE_BITMASK 252
 
 /*
     Colour can be directly written as, in theory, shapes are rendered in the
@@ -38,7 +47,12 @@
 #define WRITE_DISTANCE_TO_PIXEL(frame, row, col, dist) \
     frame[row][col] += (dist << 2);
 
-#define GET_PIXEL_VALUE(frame, x, y) \
+/* Gets pixel value under the row-col basis. */
+#define GET_PIXEL_VALUE_ROWCOL(frame, row, col) \
+    ( frame[row][col] )
+
+/* Gets the pixel value under the x-y basis. */
+#define GET_PIXEL_VALUE_XY(frame, x, y) \
     ( frame[FRAME_NUM_ROWS - y - 1][x] )
 
 #define COPY_2D_VERTEX(dest, src) \

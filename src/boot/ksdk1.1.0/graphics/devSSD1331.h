@@ -67,4 +67,5 @@ typedef enum
 } SSD1331Commands;
 
 void devSSD1331init(void);
-void writeFrame(uint8_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS]);
+// void writeFrame(uint8_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS]);
+void writeFrame(void);

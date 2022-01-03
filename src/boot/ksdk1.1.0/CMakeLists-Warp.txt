@@ -91,7 +91,7 @@ ADD_EXECUTABLE(Warp
     "${ProjDirPath}/../../src/errstrsEN.c"
     "${ProjDirPath}/../../src/powermodes.c"
     "${ProjDirPath}/../../src/devSSD1331.c"
-    "${ProjDirPath}/../../src/graphics_render.c"
+    "${ProjDirPath}/../../src/graphics_demo.c"
     "${ProjDirPath}/../../src/graphics.c"
     "${ProjDirPath}/../../src/draw_line.c"
     "${ProjDirPath}/../../src/draw_triangle.c"
