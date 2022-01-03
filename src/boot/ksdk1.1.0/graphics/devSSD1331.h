@@ -17,10 +17,10 @@
 	The extra precision granted by G_0 is truncated away, as mentioned.
 */
 typedef enum {
-	RED_LEFT_SHIFT = ,
-	GREEN_LEFT_SHIFT = ,
-	BLUE_LEFT_SHIFT = ,
-}
+	RED_LEFT_SHIFT = 0,
+	GREEN_LEFT_SHIFT = 6,
+	BLUE_LEFT_SHIFT = 11,
+} ColourBitShifts;
 
 typedef enum
 {
@@ -62,6 +62,5 @@ typedef enum
 	kSSD1331CommandVCOMH		= 0xBE,
 } SSD1331Commands;
 
-int writeCommand(uint8_t commandByte);
 void devSSD1331init(void);
 void writeFrame(uint8_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS][FRAME_NUM_COLOURS]);

@@ -94,28 +94,90 @@ void writeFrame(uint8_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS][FRAME_NUM_COLOURS]
 	/* Drive DC high. This ensures that the SSD1331 is expecting DATA as opposed to a command. */
 	GPIO_DRV_SetPinOutput(kSSD1331PinDC);
 
-	for (uint8_t row = FRAME_NUM_ROWS - 1; row >= 0; row--) {
-		for (uint8_t col = 0; col < FRAME_NUM_COLS; col++) {
+    for (uint16_t i = 0; i < 20 * 96; i++) {
 
-			/* Build 16 bit representation. */
-			colour = (frame[row][col][R] << RED_LEFT_SHIFT) + (frame[row][col][G] << GREEN_LEFT_SHIFT) + (frame[row][col][B] << BLUE_LEFT_SHIFT);
+        /* Build 16 bit representation. */
+        colour = (31 << RED_LEFT_SHIFT) + (0 << GREEN_LEFT_SHIFT) + (0 << BLUE_LEFT_SHIFT);
 
-			/* Split 16 bit representation into two bytes to store in payload_bytes. */
-			payload_bytes[0] = (0xFF00 & colour) >> 8; 	/* MSB. */
-			payload_bytes[1] = (0xFF & colour);			/* LSB. */
+        /* Split 16 bit representation into two bytes to store in payload_bytes. */
+        payload_bytes[0] = (0xFF00 & colour) >> 8; 	/* MSB. */
+        payload_bytes[1] = (0xFF & colour);			/* LSB. */
 
-			status = SPI_DRV_MasterTransferBlocking(
-				0,			/* Master instance. */
-				NULL		/* spi_master_user_config_t */,
-				(const uint8_t * restrict) &payload_bytes[0],
-				(uint8_t * restrict) &in_buffer[0],
-				2			/* Transfer size in bytes */,
-				1000		/* Timeout in microseconds (unlike I2C which is ms) */);
+        status = SPI_DRV_MasterTransferBlocking(
+            0,			/* Master instance. */
+            NULL		/* spi_master_user_config_t */,
+            (const uint8_t * restrict) &payload_bytes[0],
+            (uint8_t * restrict) &in_buffer[0],
+            2			/* Transfer size in bytes */,
+            1000		/* Timeout in microseconds (unlike I2C which is ms) */);
 
-			/* Column pointer in SSD1331 internally updates here. */
-		}
-		/* Row column pointer in SSD1331 internally updates here. */
-	}
+        /* Column pointer in SSD1331 internally updates here. */
+    }
+
+    for (uint16_t i = 20 * 96; i < 40 * 96; i++) {
+
+        /* Build 16 bit representation. */
+        colour = (0 << RED_LEFT_SHIFT) + (31 << GREEN_LEFT_SHIFT) + (0 << BLUE_LEFT_SHIFT);
+
+        /* Split 16 bit representation into two bytes to store in payload_bytes. */
+        payload_bytes[0] = (0xFF00 & colour) >> 8; 	/* MSB. */
+        payload_bytes[1] = (0xFF & colour);			/* LSB. */
+
+        status = SPI_DRV_MasterTransferBlocking(
+            0,			/* Master instance. */
+            NULL		/* spi_master_user_config_t */,
+            (const uint8_t * restrict) &payload_bytes[0],
+            (uint8_t * restrict) &in_buffer[0],
+            2			/* Transfer size in bytes */,
+            1000		/* Timeout in microseconds (unlike I2C which is ms) */);
+
+        /* Column pointer in SSD1331 internally updates here. */
+    }
+
+    for (uint16_t i = 40 * 96; i < 60 * 96; i++) {
+
+        /* Build 16 bit representation. */
+        colour = (0 << RED_LEFT_SHIFT) + (0 << GREEN_LEFT_SHIFT) + (31 << BLUE_LEFT_SHIFT);
+
+        /* Split 16 bit representation into two bytes to store in payload_bytes. */
+        payload_bytes[0] = (0xFF00 & colour) >> 8; 	/* MSB. */
+        payload_bytes[1] = (0xFF & colour);			/* LSB. */
+
+        status = SPI_DRV_MasterTransferBlocking(
+            0,			/* Master instance. */
+            NULL		/* spi_master_user_config_t */,
+            (const uint8_t * restrict) &payload_bytes[0],
+            (uint8_t * restrict) &in_buffer[0],
+            2			/* Transfer size in bytes */,
+            1000		/* Timeout in microseconds (unlike I2C which is ms) */);
+
+        /* Column pointer in SSD1331 internally updates here. */
+    }
+
+	// for (uint8_t row = FRAME_NUM_ROWS - 1; row >= 0; row--) {
+	// 	for (uint8_t col = 0; col < FRAME_NUM_COLS; col++) {
+
+	// 		/* Build 16 bit representation. */
+	// 		colour = (frame[row][col][R] << RED_LEFT_SHIFT) + (frame[row][col][G] << GREEN_LEFT_SHIFT) + (frame[row][col][B] << BLUE_LEFT_SHIFT);
+
+	// 		/* Split 16 bit representation into two bytes to store in payload_bytes. */
+	// 		payload_bytes[0] = (0xFF00 & colour) >> 8; 	/* MSB. */
+	// 		payload_bytes[1] = (0xFF & colour);			/* LSB. */
+
+	// 		status = SPI_DRV_MasterTransferBlocking(
+	// 			0,			/* Master instance. */
+	// 			NULL		/* spi_master_user_config_t */,
+	// 			(const uint8_t * restrict) &payload_bytes[0],
+	// 			(uint8_t * restrict) &in_buffer[0],
+	// 			2			/* Transfer size in bytes */,
+	// 			1000		/* Timeout in microseconds (unlike I2C which is ms) */);
+			
+	// 		warpPrint("SPI Status: %d\n", status);
+
+	// 		/* Column pointer in SSD1331 internally updates here. */
+	// 	}
+	// 	/* Row column pointer in SSD1331 internally updates here. */
+	// }
 
 	/* Upon the final data read, the SSD1331 resets the internal row and column pointers to (0, 0) (top left). */
 
@@ -196,6 +258,53 @@ void devSSD1331init(void)
 	writeCommand(0x7D);
 	writeCommand(kSSD1331CommandDISPLAYON);		// Turn on oled panel
 	SEGGER_RTT_WriteString(0, "\r\n\tDone with initialization sequence...\n");
+
+	writeCommand(kSSD1331CommandCLEAR);
+	writeCommand(0x00);
+	writeCommand(0x00);
+	writeCommand(0x5F);
+	writeCommand(0x3F);
+	SEGGER_RTT_WriteString(0, "\r\n\tDone with screen clear...\n");
+
+	writeCommand(kSSD1331CommandFILL);
+	writeCommand(0x01);
+	SEGGER_RTT_WriteString(0, "\r\n\tDone with enabling fill...\n");
+
+	/* Enter draw rectangle mode. */
+	writeCommand(kSSD1331CommandDRAWRECT);
+
+	/*
+		Set starting column.
+		Set starting row.
+		Set finishing column.
+		Set finishing row.
+
+		Screen has 95 columns and 63 rows, hence whole screen is specified below.
+	*/
+	writeCommand(0);
+	writeCommand(0);
+	writeCommand(95);
+	writeCommand(63);
+
+	/* Set outline colour (brightest green). */
+	writeCommand(0);
+	writeCommand(0xFF);
+	writeCommand(0);
+
+	/* Set rectangle fill colour (brightest green). */
+	writeCommand(0);
+	writeCommand(0);
+	writeCommand(0xFF);
+
+	OSA_TimeDelay(3000);
+
+		
+	writeCommand(kSSD1331CommandCLEAR);
+	writeCommand(0x00);
+	writeCommand(0x00);
+	writeCommand(0x5F);
+	writeCommand(0x3F);
+	SEGGER_RTT_WriteString(0, "\r\n\tDone with screen clear...\n");
 
 	/*
 		The end of the standard initialisation sequence.

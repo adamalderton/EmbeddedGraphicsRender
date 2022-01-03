@@ -2022,13 +2022,9 @@ main(void)
 	#endif
 
 	#if (WARP_BUILD_ENABLE_GRAPHICS)
-		warpPrint("About to start graphics demo.\n");
-		//graphicsDemo();
+		
+		graphicsDemo();
 
-		devSSD1331init();
-
-		warpPrint("--- Graphics demo complete! ---\n");
-		warpPrint("Now continuing to display the Warp main menu...\n");
 	#endif
 
 	while (1)
