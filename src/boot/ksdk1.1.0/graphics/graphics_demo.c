@@ -14,11 +14,13 @@
 void graphicsDemo(void)
 {
 	/* Initialise frame entirely to 0. */
-	// uint8_t frame
+	// uint8_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS] = {{0}};
 
 	devSSD1331init();
 
+	warpPrint("devSSD1331init complete!\n");
+
 	writeFrame();
 
-	warpPrint("devSSD1331init complete!\n");
+	warpPrint("Writeframe complete!\n");
 }

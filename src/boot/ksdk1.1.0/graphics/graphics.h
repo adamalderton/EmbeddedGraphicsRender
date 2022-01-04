@@ -3,9 +3,24 @@
 	#define STDINT
 #endif
 
-#define FRAME_NUM_ROWS 40
-#define FRAME_NUM_COLS 40
+#define SCREEN_MAX_COLS 96
+#define SCREEN_MAX_ROWS 64
+
+/*
+    Under the 4 bit pixel description described elsewhere, there is room for a 56 x 56
+    display window which uses nearly all of the vertical space in the screen. This frame buffer fits into
+    1600 bytes.
+*/
+#define FRAME_NUM_ROWS 56
+#define FRAME_NUM_COLS 56
+#define PIXELS_PER_BYTE 2
 #define FRAME_NUM_COLOURS 3
+
+/*
+    Used to easily defined the correct sized array.
+*/
+#define FRAME_TRUE_ROWS FRAME_NUM_ROWS
+#define FRAME_TRUE_COLS (FRAME_NUM_COLS / PIXELS_PER_BYTE)
 
 /*
     b11111.
@@ -16,44 +31,50 @@
 #define MAX_COLOUR_INTENSITY 31
 
 /*
-    THe distance quantity must fit within 6 bits.
+    THe distance quantity must fit within 2 bits.
 */
 #define CLOSEST_DISTANCE 0
-#define MAXIMUM_DISTANCE 63
+#define MAXIMUM_DISTANCE 3
 
 /*
-    Used to extract colour and distance out of 8 bit pixel value.
+    Used to extract colour and distance out of 4 bit pixel value.
 
-    Colour is stored in the rightmost bytes hence the bitmask is 00000011.
-    Distance is stored in the other 6 hence 11111100.
+    Colour is stored in the rightmost bytes hence the bitmask is 0011.
+    Distance is stored in the other two hence 1100.
 */
 #define COLOUR_BITMASK 3
-#define DISTANCE_BITMASK 252
+#define DISTANCE_BITMASK (COLOUR_BITMASK << PIXELS_PER_BYTE)
+
+/*
+    00001111, can be left shifted to write to other pixel.
+*/
+#define PIXEL_BITMASK 15
+#define BITS_PER_PIXEL 4
 
 /*
     Colour can be directly written as, in theory, shapes are rendered in the
-    correct order.
+    correct order. Additionally, distances should be written to the frame element AFTER the colour is written.
 
-    Additionally, distances should be written to the frame element AFTER the colour is written.
+    If col is even, colour is not left shifted at all and is written into the 0th pixel.
+    If col is odd, colour is left shifted by 4 spaces such that colour is written into the 1st pixel.
 */
 #define WRITE_COLOUR_TO_PIXEL(frame, row, col, colour) \
-    frame[row][col] = colour;
+    frame[row][col / PIXELS_PER_BYTE] += (colour << (BITS_PER_PIXEL << (col % PIXELS_PER_BYTE)));
 
 /*
-    Remember, the left-most 6 bits represent colour, so the distance is left shifted.
-    Therefore, dist cannot be greater than 63. That is, 0 and 63 must represent the
-    distance range.
+    Remember, the left-most 2 bits represent colour, so the distance is left shifted.
+    Therefore, dist cannot be greater than 3.
 */
 #define WRITE_DISTANCE_TO_PIXEL(frame, row, col, dist) \
-    frame[row][col] += (dist << 2);
+    frame[row][col / PIXELS_PER_BYTE] += (dist << PIXELS_PER_BYTE) << (BITS_PER_PIXEL << (col % PIXELS_PER_BYTE)));
 
 /* Gets pixel value under the row-col basis. */
 #define GET_PIXEL_VALUE_ROWCOL(frame, row, col) \
-    ( frame[row][col] )
+    ( frame[row][col / PIXELS_PER_BYTE] & (PIXEL_BITMASK << (col % PIXELS_PER_BYTE)) )
 
 /* Gets the pixel value under the x-y basis. */
 #define GET_PIXEL_VALUE_XY(frame, x, y) \
-    ( frame[FRAME_NUM_ROWS - y - 1][x] )
+    ( frame[FRAME_NUM_ROWS - y - 1][x / PIXELS_PER_BYTE] & (PIXEL_BITMASK << (x % PIXELS_PER_BYTE)) )
 
 #define COPY_2D_VERTEX(dest, src) \
     dest[X] = src[X]; \
@@ -92,5 +113,5 @@ void drawPixel(
     uint8_t x,
     uint8_t y,
     uint8_t colour,
-    uint8_t distance,
+    uint8_t distance
 );

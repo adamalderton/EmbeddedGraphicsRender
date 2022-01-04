@@ -93,79 +93,18 @@ void writeFrame(void)
 		Stores the amounts by which to left shift each colour such that it is displayed appropriately. This
 		array is iterated over as necessary later (hence not an enum). FRAME_NUM_COLOURS + 1 is used to account for black (no colour).
 	*/
-	uint8_t left_shifts[FRAME_NUM_COLOURS + 1] = {
-		0,	/* Black left shift (not needed so set to 0). */
-		RED_LEFT_SHIFT,
-		GREEN_LEFT_SHIFT,
-		BLUE_LEFT_SHIFT
-	};
+	uint8_t left_shifts[FRAME_NUM_COLOURS + 1];
+
+	left_shifts[K] = 0;
+	left_shifts[R] = RED_LEFT_SHIFT;
+	left_shifts[G] = GREEN_LEFT_SHIFT;
+	left_shifts[B] = BLUE_LEFT_SHIFT;
 
 	/* Drive CS low. */
 	GPIO_DRV_ClearPinOutput(kSSD1331PinCSn);
 
 	/* Drive DC high. This ensures that the SSD1331 is expecting DATA as opposed to a command. */
 	GPIO_DRV_SetPinOutput(kSSD1331PinDC);
-
-	uint16_t colour;
-    for (uint16_t i = 0; i < 20 * 96; i++) {
-
-        /* Build 16 bit representation. */
-        colour = (31 << RED_LEFT_SHIFT) + (0 << GREEN_LEFT_SHIFT) + (0 << BLUE_LEFT_SHIFT);
-
-        /* Split 16 bit representation into two bytes to store in payload_bytes. */
-        payload_bytes[0] = (0xFF00 & colour) >> 8; 	/* MSB. */
-        payload_bytes[1] = (0xFF & colour);			/* LSB. */
-
-        SPI_DRV_MasterTransferBlocking(
-            0,			/* Master instance. */
-            NULL		/* spi_master_user_config_t */,
-            (const uint8_t * restrict) &payload_bytes[0],
-            (uint8_t * restrict) &in_buffer[0],
-            2			/* Transfer size in bytes */,
-            1000		/* Timeout in microseconds (unlike I2C which is ms) */);
-
-        /* Column pointer in SSD1331 internally updates here. */
-    }
-
-    for (uint16_t i = 20 * 96; i < 40 * 96; i++) {
-
-        /* Build 16 bit representation. */
-        colour = (0 << RED_LEFT_SHIFT) + (31 << GREEN_LEFT_SHIFT) + (0 << BLUE_LEFT_SHIFT);
-
-        /* Split 16 bit representation into two bytes to store in payload_bytes. */
-        payload_bytes[0] = (0xFF00 & colour) >> 8; 	/* MSB. */
-        payload_bytes[1] = (0xFF & colour);			/* LSB. */
-
-        SPI_DRV_MasterTransferBlocking(
-            0,			/* Master instance. */
-            NULL		/* spi_master_user_config_t */,
-            (const uint8_t * restrict) &payload_bytes[0],
-            (uint8_t * restrict) &in_buffer[0],
-            2			/* Transfer size in bytes */,
-            1000		/* Timeout in microseconds (unlike I2C which is ms) */);
-
-        /* Column pointer in SSD1331 internally updates here. */
-    }
-
-    // for (uint16_t i = 40 * 96; i < 60 * 96; i++) {
-
-    //     /* Build 16 bit representation. */
-    //     colour = (0 << RED_LEFT_SHIFT) + (0 << GREEN_LEFT_SHIFT) + (31 << BLUE_LEFT_SHIFT);
-
-    //     /* Split 16 bit representation into two bytes to store in payload_bytes. */
-    //     payload_bytes[0] = (0xFF00 & colour) >> 8; 	/* MSB. */
-    //     payload_bytes[1] = (0xFF & colour);			/* LSB. */
-
-    //     status = SPI_DRV_MasterTransferBlocking(
-    //         0,			/* Master instance. */
-    //         NULL		/* spi_master_user_config_t */,
-    //         (const uint8_t * restrict) &payload_bytes[0],
-    //         (uint8_t * restrict) &in_buffer[0],
-    //         2			/* Transfer size in bytes */,
-    //         1000		/* Timeout in microseconds (unlike I2C which is ms) */);
-
-    //     /* Column pointer in SSD1331 internally updates here. */
-    // }
 
 	// for (uint8_t row = FRAME_NUM_ROWS - 1; row >= 0; row--) {
 	// 	for (uint8_t col = 0; col < FRAME_NUM_COLS; col++) {
@@ -186,8 +125,10 @@ void writeFrame(void)
 	// 			Colour = pixel_value & COLOUR_BITMASK
 	// 			Distance = pixel_value & DISTANCE_BITMASK
 	// 		*/
-	// 		payload =  ( MAX_COLOUR_INTENSITY -  (MAX_COLOUR_INTENSITY * ( (pixel_value & DISTANCE_BITMASK) / (MAXIMUM_DISTANCE) ) ) ) << left_shifts[pixel_value & COLOUR_BITMASK];
-
+	// 		/* If colour is not black, populate the payload. */
+	// 		if ((pixel_value & COLOUR_BITMASK) != 0) {
+	// 			payload =  ( MAX_COLOUR_INTENSITY -  (MAX_COLOUR_INTENSITY * ( (pixel_value & DISTANCE_BITMASK) / (MAXIMUM_DISTANCE) ) ) ) << left_shifts[pixel_value & COLOUR_BITMASK];
+	// 		}
 	// 		/* Split 16 bit representation into two bytes to store in payload_bytes. */
 	// 		payload_bytes[0] = (0xFF00 & payload) >> 8; 	/* MSB. */
 	// 		payload_bytes[1] = (0xFF & payload);			/* LSB. */
@@ -205,7 +146,29 @@ void writeFrame(void)
 	// 	/* Row column pointer in SSD1331 internally updates here. */
 	// }
 
-	// /* Upon the final data read, the SSD1331 resets the internal row and column pointers. */
+	for (uint8_t row = FRAME_NUM_ROWS - 1; row != 255; row--) { /* row != 255 as row is unsigned. */
+		for (uint8_t col = 0; col < FRAME_NUM_COLS; col++) {
+
+			payload = 0xFFFF;
+
+			/* Split 16 bit representation into two bytes to store in payload_bytes. */
+			payload_bytes[0] = (0xFF00 & payload) >> 8; 	/* MSB. */
+			payload_bytes[1] = (0xFF & payload);			/* LSB. */
+
+			SPI_DRV_MasterTransferBlocking(
+				0,			/* Master instance. */
+				NULL		/* spi_master_user_config_t */,
+				(const uint8_t * restrict) &payload_bytes[0],
+				(uint8_t * restrict) &in_buffer[0],
+				2			/* Transfer size in bytes */,
+				1000		/* Timeout in microseconds (unlike I2C which is ms) */);
+
+			/* Column pointer in SSD1331 internally updates here. */
+		}
+		/* Row column pointer in SSD1331 internally updates here. */
+	}
+
+	/* Upon the final data read, the SSD1331 resets the internal row and column pointers. */
 
 	/* Drive CS high to complete frame writing interaction. */
 	GPIO_DRV_SetPinOutput(kSSD1331PinCSn);
@@ -309,10 +272,10 @@ void devSSD1331init(void)
 	writeCommand(0x5F);
 	writeCommand(0x3F);
 
-	/* Set outline colour (brightest green). */
-	writeCommand(0);
+	/* Set outline colour (white). */
 	writeCommand(0xFF);
-	writeCommand(0);
+	writeCommand(0xFF);
+	writeCommand(0xFF);
 
 	/* Set rectangle fill colour (brightest blue). */
 	writeCommand(0);
@@ -332,17 +295,19 @@ void devSSD1331init(void)
 	/*
 		The end of the standard initialisation sequence.
 
-		Next, we set the write area of the screen (the whole screen).
+		Next, we set the write area of the screen. This assumes that the constants defined below
+		are even, although truncation is likely okay if not.
 	*/
 	writeCommand(kSSD1331CommandSETCOLUMN);
-	writeCommand(0x00);
-	// writeCommand(FRAME_NUM_COLS - 1);
-	writeCommand(96 - 1);
+	writeCommand((SCREEN_MAX_COLS / 2) - (FRAME_NUM_COLS / 2)); /* Starting column. */
+	writeCommand((SCREEN_MAX_COLS / 2) + (FRAME_NUM_COLS / 2)); /* End column. */
 	
 	writeCommand(kSSD1331CommandSETROW);
-	writeCommand(0x00);
-	// writeCommand(FRAME_NUM_ROWS - 1);
-	writeCommand(64 - 1);
+	writeCommand((SCREEN_MAX_ROWS / 2) - (FRAME_NUM_ROWS / 2)); /* Start row. */
+	writeCommand((SCREEN_MAX_ROWS / 2) + (FRAME_NUM_ROWS / 2)); /* End column. */
+
+	warpPrint("Frame columns: (%d -> %d)\n", (SCREEN_MAX_COLS / 2) - (FRAME_NUM_COLS / 2), (SCREEN_MAX_COLS / 2) + (FRAME_NUM_COLS / 2));
+	warpPrint("Frame rows:    (%d -> %d)\n", (SCREEN_MAX_ROWS / 2) - (FRAME_NUM_ROWS / 2), (SCREEN_MAX_ROWS / 2) + (FRAME_NUM_ROWS / 2));
 
 	SEGGER_RTT_WriteString(0, "\r\n\tDone with initialisation sequence.\n");
 }

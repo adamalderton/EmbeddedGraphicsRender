@@ -157,7 +157,7 @@ void drawLine(
 }
 
 void drawHorizontalLine(
-    uint8_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS][FRAME_NUM_COLOURS],
+    uint8_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS],
     uint8_t y,
     uint8_t x0,
     uint8_t x1,
