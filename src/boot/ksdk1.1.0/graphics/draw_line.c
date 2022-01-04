@@ -7,7 +7,7 @@
     See drawLine() for further documentation.
 */
 static void drawLineOctant1(
-    uint8_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS],
+    uint8_t frame[FRAME_TRUE_ROWS][FRAME_TRUE_COLS],
     uint8_t x0,
     uint8_t y0,
     uint8_t dx,
@@ -25,7 +25,7 @@ static void drawLineOctant1(
     dxx2minusdyx2 = dxx2 - (int16_t) (2 * dy);
     err = dxx2 - (int16_t) dy;
 
-    drawPixel(frame, x0, y0, colour, CLOSEST_DISTANCE); /* Draw first pixel. */
+    drawPixel(frame, x0, y0, colour, MAX_RELATIVE_INTENSITY); /* Draw first pixel. */
     while ( dy-- > 0 ) {
         
         /* Test advancement of the x coordinate. */
@@ -37,7 +37,7 @@ static void drawLineOctant1(
         }
 
         y0++;
-        drawPixel(frame, x0, y0, colour, CLOSEST_DISTANCE);
+        drawPixel(frame, x0, y0, colour, MAX_RELATIVE_INTENSITY);
     }
 }
 
@@ -46,7 +46,7 @@ static void drawLineOctant1(
     See drawLine() for further documentation.
 */
 static void drawLineOctant0(
-    uint8_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS],
+    uint8_t frame[FRAME_TRUE_ROWS][FRAME_TRUE_COLS],
     uint8_t x0,
     uint8_t y0,
     uint8_t dx,
@@ -64,7 +64,7 @@ static void drawLineOctant0(
     dyx2minusdxx2 = dyx2 - (int16_t) (2 * dx);
     err = dyx2 - (int16_t) dx;
 
-    drawPixel(frame, x0, y0, colour, CLOSEST_DISTANCE); /* Draw first pixel. */
+    drawPixel(frame, x0, y0, colour, MAX_RELATIVE_INTENSITY); /* Draw first pixel. */
     while ( dx-- > 0 ) {
 
         /* Test advancement of the y coordinate. */
@@ -77,7 +77,7 @@ static void drawLineOctant0(
         }
 
         x0 += x_direction;
-        drawPixel(frame, x0, y0, colour, CLOSEST_DISTANCE);
+        drawPixel(frame, x0, y0, colour, MAX_RELATIVE_INTENSITY);
     }
 }
 
@@ -100,7 +100,7 @@ static void drawLineOctant0(
     It then calls the correct octant line drawing procedure.
 */
 void drawLine(
-    uint8_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS],
+    uint8_t frame[FRAME_TRUE_ROWS][FRAME_TRUE_COLS],
     uint8_t point_0[2],
     uint8_t point_1[2],
     uint8_t colour,
@@ -157,7 +157,7 @@ void drawLine(
 }
 
 void drawHorizontalLine(
-    uint8_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS],
+    uint8_t frame[FRAME_TRUE_ROWS][FRAME_TRUE_COLS],
     uint8_t y,
     uint8_t x0,
     uint8_t x1,

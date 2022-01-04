@@ -66,8 +66,8 @@ static int writeCommand(uint8_t commandByte)
 	properly, a 'shearing' effect is minimised which would otherwise be a problem as the GDRAM is written to
 	asynchronously.
 */
-// void writeFrame(uint8_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS])
-void writeFrame(void)
+void writeFrame(uint8_t frame[FRAME_TRUE_ROWS][FRAME_TRUE_COLS])
+// void writeFrame(void)
 {
 	/*
 		The default writing format in which the SSD1331 chip expects to receive data is column wise. That is,
@@ -93,12 +93,12 @@ void writeFrame(void)
 		Stores the amounts by which to left shift each colour such that it is displayed appropriately. This
 		array is iterated over as necessary later (hence not an enum). FRAME_NUM_COLOURS + 1 is used to account for black (no colour).
 	*/
-	uint8_t left_shifts[FRAME_NUM_COLOURS + 1];
+	uint8_t shifts[FRAME_NUM_COLOURS + 1];
 
-	left_shifts[K] = 0;
-	left_shifts[R] = RED_LEFT_SHIFT;
-	left_shifts[G] = GREEN_LEFT_SHIFT;
-	left_shifts[B] = BLUE_LEFT_SHIFT;
+	shifts[K] = 0;
+	shifts[R] = RED_LEFT_SHIFT;
+	shifts[G] = GREEN_LEFT_SHIFT;
+	shifts[B] = BLUE_LEFT_SHIFT;
 
 	/* Drive CS low. */
 	GPIO_DRV_ClearPinOutput(kSSD1331PinCSn);
@@ -106,50 +106,22 @@ void writeFrame(void)
 	/* Drive DC high. This ensures that the SSD1331 is expecting DATA as opposed to a command. */
 	GPIO_DRV_SetPinOutput(kSSD1331PinDC);
 
-	// for (uint8_t row = FRAME_NUM_ROWS - 1; row >= 0; row--) {
-	// 	for (uint8_t col = 0; col < FRAME_NUM_COLS; col++) {
-	// 		payload = 0;
-
-	// 		/* Get pixel value, extract colour and distance. */
-	// 		pixel_value = GET_PIXEL_VALUE_ROWCOL(frame, row, col);
-
-	// 		/*
-	// 			Calculate final 'colour' to store in the 16 bit payload.
-				
-	// 			This is simply the ratio of the distance to the maximum distance mapped to the minimum and maximum intensity.
-				
-	// 			Truncating the integer division is a good enough result considering the costly rounding alternative.
-				
-	// 			Left shift the result as appropriate such that thecorrect colour is displayed.
-
-	// 			Colour = pixel_value & COLOUR_BITMASK
-	// 			Distance = pixel_value & DISTANCE_BITMASK
-	// 		*/
-	// 		/* If colour is not black, populate the payload. */
-	// 		if ((pixel_value & COLOUR_BITMASK) != 0) {
-	// 			payload =  ( MAX_COLOUR_INTENSITY -  (MAX_COLOUR_INTENSITY * ( (pixel_value & DISTANCE_BITMASK) / (MAXIMUM_DISTANCE) ) ) ) << left_shifts[pixel_value & COLOUR_BITMASK];
-	// 		}
-	// 		/* Split 16 bit representation into two bytes to store in payload_bytes. */
-	// 		payload_bytes[0] = (0xFF00 & payload) >> 8; 	/* MSB. */
-	// 		payload_bytes[1] = (0xFF & payload);			/* LSB. */
-
-	// 		SPI_DRV_MasterTransferBlocking(
-	// 			0,			/* Master instance. */
-	// 			NULL		/* spi_master_user_config_t */,
-	// 			(const uint8_t * restrict) &payload_bytes[0],
-	// 			(uint8_t * restrict) &in_buffer[0],
-	// 			2			/* Transfer size in bytes */,
-	// 			1000		/* Timeout in microseconds (unlike I2C which is ms) */);
-
-	// 		/* Column pointer in SSD1331 internally updates here. */
-	// 	}
-	// 	/* Row column pointer in SSD1331 internally updates here. */
-	// }
-
 	for (uint8_t row = FRAME_NUM_ROWS - 1; row != 255; row--) { /* row != 255 as row is unsigned. */
 		for (uint8_t col = 0; col < FRAME_NUM_COLS; col++) {
+			payload = 0;
 
-			payload = 0xFFFF;
+			pixel_value = get_pixel_value_rowcol(frame, row, col);
+
+			/*
+				Calculate final result to store in the 16 bit payload. This is simply the colour and the ratio of
+				the distance to the maximum distance mapped to the minimum and maximum intensity.
+				Left shift the result as appropriate such that the correct colour is displayed.
+
+				If both colour and intensity are non zero. Zero colour is black (pixel off).
+			*/
+			if ((pixel_value & COLOUR_BITMASK) && (pixel_value & RELATIVE_INTENSITY_BITMASK)) {
+				payload = ( (uint8_t) (MAX_COLOUR_INTENSITY_FLOAT * (((float) (RELATIVE_INTENSITY_FROM_PIXEL_VALUE(pixel_value))) / (MAX_RELATIVE_INTENSITY_FLOAT))) ) << shifts[COLOUR_FROM_PIXEL_VALUE(pixel_value)];
+			}
 
 			/* Split 16 bit representation into two bytes to store in payload_bytes. */
 			payload_bytes[0] = (0xFF00 & payload) >> 8; 	/* MSB. */

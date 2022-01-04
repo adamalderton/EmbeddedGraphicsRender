@@ -63,7 +63,7 @@ static TriangleSideVarTracker setupLineTracker(uint8_t point_0[2], uint8_t point
     return t;
 }
 
-static void drawFlatTopTriangle(uint8_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS], Triangle2D tri)
+static void drawFlatTopTriangle(uint8_t frame[FRAME_TRUE_ROWS][FRAME_TRUE_COLS], Triangle2D tri)
 {
     /*
         As the vertices have been sorted, the flat line lies between vertices 0 and 1.
@@ -98,7 +98,7 @@ static void drawFlatTopTriangle(uint8_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS], T
     xB = tri.vs[2][X];
 
     /* Draw first (bottom) point. */
-    drawPixel(frame, tri.vs[2][X], y, tri.colour, CLOSEST_DISTANCE);
+    drawPixel(frame, tri.vs[2][X], y, tri.colour, MAX_RELATIVE_INTENSITY);
 
     /*
         Flat top triangle rasterisation loop.
@@ -169,11 +169,11 @@ static void drawFlatTopTriangle(uint8_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS], T
         }
 
         /* Finally, draw the line at y = y between xA and xB. */
-        drawHorizontalLine(frame, y, xA, xB, tri.colour, CLOSEST_DISTANCE);
+        drawHorizontalLine(frame, y, xA, xB, tri.colour, MAX_RELATIVE_INTENSITY);
     }
 }
 
-static void drawFlatBottomTriangle(uint8_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS], Triangle2D tri)
+static void drawFlatBottomTriangle(uint8_t frame[FRAME_TRUE_ROWS][FRAME_TRUE_COLS], Triangle2D tri)
 {
     /*
         As the vertices have been sorted, the flat line lies between vertices 1 and 2.
@@ -207,7 +207,7 @@ static void drawFlatBottomTriangle(uint8_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS]
     xB = tri.vs[2][X];
 
     /* Draw first (bottom) line. */
-    drawHorizontalLine(frame, y, xA, xB, tri.colour, CLOSEST_DISTANCE);
+    drawHorizontalLine(frame, y, xA, xB, tri.colour, MAX_RELATIVE_INTENSITY);
 
     /*
         Flat bottom triangle rasterisation loop.
@@ -278,7 +278,7 @@ static void drawFlatBottomTriangle(uint8_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS]
         }
 
         /* Finally, draw the line at y = y between xA and xB. */
-        drawHorizontalLine(frame, y, xA, xB, tri.colour, CLOSEST_DISTANCE);
+        drawHorizontalLine(frame, y, xA, xB, tri.colour, MAX_RELATIVE_INTENSITY);
     }
 }
 
@@ -294,7 +294,7 @@ static void drawFlatBottomTriangle(uint8_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS]
     the drawLine function which was a precursor to the drawTriangle function. The drawLine function was
     adapted from an implementation by Michael Abrash.
 */
-void drawTriangle(uint8_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS], Triangle2D tri)
+void drawTriangle(uint8_t frame[FRAME_TRUE_ROWS][FRAME_TRUE_COLS], Triangle2D tri)
 {
     /* Sort triangle vertices in ascending order. Triangle will be drawn from the bottom up. */
     sortTriangle2DVertices(&tri);

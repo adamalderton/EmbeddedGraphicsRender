@@ -45,4 +45,4 @@ typedef struct {
     int16_t err;        /* Pixel Error term. (p - dx) for octant 0, (p - dy) for octant 1. */
 } TriangleSideVarTracker;
 
-void drawTriangle(uint8_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS], Triangle2D tri);
+void drawTriangle(uint8_t frame[FRAME_TRUE_ROWS][FRAME_TRUE_COLS], Triangle2D tri);

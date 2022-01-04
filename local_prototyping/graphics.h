@@ -11,8 +11,8 @@
     display window which uses nearly all of the vertical space in the screen. This frame buffer fits into
     1600 bytes.
 */
-#define FRAME_NUM_ROWS 20
-#define FRAME_NUM_COLS 20
+#define FRAME_NUM_ROWS 6
+#define FRAME_NUM_COLS 6
 #define PIXELS_PER_BYTE 2
 #define FRAME_NUM_COLOURS 3
 
@@ -33,11 +33,11 @@
 #define MAX_COLOUR_INTENSITY_FLOAT 30.0
 
 /*
-    The distance quantity must fit within 2 bits.
-    The minimum relative intensity is 0.
+    THe distance quantity must fit within 2 bits.
 */
-#define MAX_RELATIVE_INTENSITY 3
-#define MAX_RELATIVE_INTENSITY_FLOAT 3.0 /* To prevent repeated casting. */
+#define MINIMUM_RELATIVE_INTENSITY 0
+#define MAXIMUM_RELATIVE_INTENSITY 3
+#define MAXIMUM_RELATIVE_INTENSITY_FLOAT 3.0 /* To prevent repeated casting. */
 
 /*
     Used to extract colour and distance out of 4 bit pixel value.
@@ -49,7 +49,7 @@
 #define RELATIVE_INTENSITY_BITMASK 15 /* (COLOUR_BITMASK << PIXELS_PER_BYTE) */
 
 /*
-    00001111, can be left shifted to write to other pixel in byte.
+    00001111, can be left shifted to write to other pixel.
 */
 #define PIXEL_BITMASK 15
 #define BITS_PER_PIXEL 4 /* sizeof(uint8_t) / PIXELS_PER_BYTE */
@@ -64,14 +64,15 @@
 #define WRITE_COLOUR_TO_PIXEL(frame, row, col, colour) \
     frame[row][col / PIXELS_PER_BYTE] += ( colour << (BITS_PER_PIXEL * (col % PIXELS_PER_BYTE)) );
 
+/*
+    Remember, the left-most 2 bits represent colour, so the intensity is left shifted.
+    Therefore, dist cannot be greater than 3.
+*/
 #define WRITE_RELATIVE_INTENSITY_TO_PIXEL(frame, row, col, relative_intensity) \
     frame[row][col / PIXELS_PER_BYTE] += ( (relative_intensity << PIXELS_PER_BYTE) << (BITS_PER_PIXEL * (col % PIXELS_PER_BYTE)) );
 
 #define RELATIVE_INTENSITY_FROM_PIXEL_VALUE(pixel_value) \
     ( (pixel_value & RELATIVE_INTENSITY_BITMASK) >> PIXELS_PER_BYTE )
-
-#define COLOUR_FROM_PIXEL_VALUE(pixel_value) \
-    ( (pixel_value & COLOUR_BITMASK) )
 
 #define COPY_2D_VERTEX(dest, src) \
     dest[X] = src[X]; \
@@ -90,13 +91,25 @@ typedef enum {
     B = 3   /* Blue, 11 in binary. */
 } Colours;
 
+/*
+    Defines the means to access the 'frame' array correctly.
+    
+    In C style indexing, the point (x = 0, y = 0) is at the top left of the frame.
+
+    With increasing x, the point of consideration travels DOWN VERTICALLY.
+    With increasing y, the point of consideration travels RIGHT HORIZONTALLY.
+
+    This can be somewhat confusing with the intuition that a cartesian coordinate system
+    would start in the bottom left such that x and y are only positive and increase horizontally
+    right and vertically up respectively.
+
+    Therefore, to convert from C array access to an inuitive coordinate system, the following macros
+    are implemented.
+ */
 void drawPixel(
     uint8_t frame[FRAME_TRUE_ROWS][FRAME_TRUE_COLS],
     uint8_t x,
     uint8_t y,
     uint8_t colour,
-    uint8_t relative_intensity
+    uint8_t distance
 );
-
-// uint8_t get_pixel_value_xy(uint8_t frame[FRAME_TRUE_ROWS][FRAME_TRUE_COLS], uint8_t x, uint8_t y);
-uint8_t get_pixel_value_rowcol(uint8_t frame[FRAME_TRUE_ROWS][FRAME_TRUE_COLS], uint8_t col, uint8_t row);
