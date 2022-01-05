@@ -3,20 +3,72 @@
 	#define STDINT
 #endif
 
+/*=================== START OF DEMO SELECTION ======================*/
+
+/*
+    The demos available.
+    Please only define one of these to be 1, the rest should be 0.
+    They are given in increasing complexity as you go down the list.
+*/
+
+/* Demonstrates correct drawing of triangles, pixel overwriting, and the speed of the program. */
+#define OVERLAPPING_2D_TRIANGLES_DEMO 1
+
+/*  */
+#define SPINNING_MULTICOLOUR_CUBE_DEMO 0
+
+/*  */
+#define TRIANGULAR_TOWERS_DEMO 0
+
+/*=================== END OF DEMO SELECTION ========================*/
+
 /*================== START OF CUSTOMISABLE QUANTITIES ==================*/
 
 /*
     Must ensure that ((FRAME_NUM_ROWS * FRAME_NUM_COLS) / PIXELS_PER_BYTE) fits into the stack size
     with room left over for other variables, especially the graphic scene to be loaded. 
+    FRAME_NUM_ROWS and FRAME_NUM_COLS must both be EVEN. Warnings are provided if not.
+
+    GRAPHICS_OPTIMISED determines whether unneccessary .data and .bss variables elsewhere in the Warp
+    firmware are used in the interest of memory. 1 implies optimised, 0 implies not optimised.
+    Optimising things prevents printing as the print buffer is no longer used.
 */
-#define FRAME_NUM_ROWS 36
-#define FRAME_NUM_COLS 36
+#if (OVERLAPPING_2D_TRIANGLES_DEMO)
+    #define FRAME_NUM_ROWS 36
+    #define FRAME_NUM_COLS 36
+    #define GRAPHICS_OPTIMISED 0
+    #define OVERLAPPING_2D_TRIANGLES_DEMO_ITERATIONS 99 /* Such that final frame isn't black, but blue. */
+#endif
+
+#if (SPINNING_MULTICOLOUR_CUBE_DEMO)
+    #define FRAME_NUM_ROWS 44
+    #define FRAME_NUM_COLS 44
+    #define GRAPHICS_OPTIMISED 1
+#endif
+
+#if (SPINNING_MULTICOLOUR_CUBE_DEMO)
+    #define FRAME_NUM_ROWS 44
+    #define FRAME_NUM_COLS 44
+    #define GRAPHICS_OPTIMISED 1
+#endif
 
 /* Used to display wireframe triangles - useful for debugging. 1 for yes, 0 for no. */
 #define WIREFRAME 0
 
 /* Used to display a square outline to display the limits of the frame on the OLED display. 1 for yes, 0 for no. */
 #define OUTER_FRAME 0
+
+/*
+    Used to set the refresh rate of the display. See the 'FR Synchronisation' section of the SSD1331 manual.
+    Should be between b0000 and b1111 which results in a divisor equal to the decimal value plus 1.
+    That is, it ranges from 1 to 16. Set to 1 for highest refresh rate. This is often way too high for our purposes.
+    There is very probably an analytic way to find out what this quantity should be for different renders, but in the
+    interest if simplicity and focussing on the task at hand, this quantity should be found empirically.
+
+    On further experimentation, it seems that should almost always be 0. If it's significant, the display noticeably
+    flashes. That is, it's not bright for long enough on each clock cycle to appear continuous.
+*/
+#define REFRESH_RATE_DIVISOR 0
 
 /*=================== END OF CUSTOMISABLE QUANTITIES ===================*/
 

@@ -200,7 +200,13 @@ volatile uint32_t					gWarpUartTimeoutMilliseconds		= kWarpDefaultUartTimeoutMil
 volatile uint32_t					gWarpMenuPrintDelayMilliseconds		= kWarpDefaultMenuPrintDelayMilliseconds;
 volatile uint32_t					gWarpSupplySettlingDelayMilliseconds	= kWarpDefaultSupplySettlingDelayMilliseconds;
 volatile uint16_t					gWarpCurrentSupplyVoltage		= kWarpDefaultSupplyVoltageMillivolts;
-char							gWarpPrintBuffer[kWarpDefaultPrintBufferSizeBytes];
+
+#if (GRAPHICS_OPTIMISED)
+	/* Disable printing within warpPrint. Strings will still be stored in .text. */
+	#define WARP_BUILD_ENABLE_SEGGER_RTT_PRINTF 0
+#else
+	char								gWarpPrintBuffer[kWarpDefaultPrintBufferSizeBytes];
+#endif
 
 /*
  *	Since only one SPI transaction is ongoing at a time in our implementation
@@ -1473,7 +1479,7 @@ main(void)
 	 */
 	if (!WARP_BUILD_BOOT_TO_CSVSTREAM)
 	{
-		warpPrint("\n\n\n\rBooting Warp, in 3... ");
+		warpPrint("\n\n\n\rBooting Warp (graphics fork), in 3... ");
 		OSA_TimeDelay(1000);
 		warpPrint("2... ");
 		OSA_TimeDelay(1000);
@@ -1871,7 +1877,7 @@ main(void)
 	 *	will also be sent to the BLE if that is compiled in.
 	 */
 	gWarpBooted = true;
-	warpPrint("Boot done.\n");
+	warpPrint("Boot done.\n\n\n");
 
 	#if (WARP_BUILD_BOOT_TO_CSVSTREAM)
 		printBootSplash(gWarpCurrentSupplyVoltage, menuRegisterAddress, &powerManagerCallbackStructure);
@@ -2026,6 +2032,7 @@ main(void)
 		graphicsDemo();
 
 		warpPrint("Graphics demo complete.\n");
+		warpPrint("MCU may now be externally halted.\n");
 
 	#else
 

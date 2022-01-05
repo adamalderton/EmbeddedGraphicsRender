@@ -193,7 +193,7 @@ void devSSD1331init(void)
 	writeCommand(kSSD1331CommandPRECHARGE);
 	writeCommand(0x31);
 	writeCommand(kSSD1331CommandCLOCKDIV);
-	writeCommand(0xF0); /* Max clock speed. */
+	writeCommand(0xF0 + REFRESH_RATE_DIVISOR);
 	writeCommand(kSSD1331CommandPRECHARGEA);
 	writeCommand(0x64);
 	writeCommand(kSSD1331CommandPRECHARGEB);

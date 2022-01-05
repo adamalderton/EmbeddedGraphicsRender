@@ -29,14 +29,13 @@ void drawPixel(
 
     /*
         Write colour and intensity to pixel in one operation to pixel.
-        To ensure pixels are overwritten correcty, we have to set the correct byte to 0 first.
+        To ensure pixels are overwritten correctly, we have to set the correct byte to 0 first.
     */
 
-    
     frame[FRAME_NUM_ROWS - y - 1][x / PIXELS_PER_BYTE]
         +=
         ( -1 * (frame[FRAME_NUM_ROWS - y - 1][x / PIXELS_PER_BYTE] & (PIXEL_BITMASK << shift) ) )   /* Extract and remove current pixel value (usually 0). */
-      + ( (colour << shift) + ( (relative_intensity << PIXELS_PER_BYTE) << shift ) );               /* Add new pixel value. */
+        + ( (colour << shift) + ( (relative_intensity << PIXELS_PER_BYTE) << shift ) );             /* Add new pixel value. */
 }
 
 /* Gets the 4 bit pixel value by referencing the frame buffer in the x-y basis. */
