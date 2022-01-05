@@ -1,7 +1,6 @@
 #include <stdint.h>
 
 #include "draw_line.h"
-#include "warp.h"
 
 /*
     Adapted from Graphics Programming Black Book - Michael Abrash.

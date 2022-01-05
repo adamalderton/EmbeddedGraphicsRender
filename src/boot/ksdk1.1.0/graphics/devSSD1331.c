@@ -112,10 +112,6 @@ void writeFrame(uint8_t frame[FRAME_TRUE_ROWS][FRAME_TRUE_COLS])
 
 			pixel_value = get_pixel_value_rowcol(frame, row, col);
 
-			if (pixel_value != 0) {
-				warpPrint("(%d, %d, %d)\n", pixel_value, row, col);
-			}
-
 			/*
 				Calculate final result to store in the 16 bit payload. This is simply the colour and the ratio of
 				the distance to the maximum distance mapped to the minimum and maximum intensity.

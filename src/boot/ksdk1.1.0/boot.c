@@ -2025,7 +2025,9 @@ main(void)
 		
 		graphicsDemo();
 
-	#endif
+		warpPrint("Graphics demo complete.\n");
+
+	#else
 
 	while (1)
 	{
@@ -2787,6 +2789,8 @@ main(void)
 			}
 		}
 	}
+
+	#endif
 
 	return 0;
 }

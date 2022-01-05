@@ -78,7 +78,11 @@
     dest[Y] = src[Y];
 
 #define RESET_FRAME(frame) \
-    memset(frame, 0, sizeof(frame[0][0]) * FRAME_TRUE_ROWS * FRAME_TRUE_COLS)
+    for (uint8_t i = 0; i < FRAME_TRUE_ROWS; i++) { \
+        for (uint8_t j = 0; j < FRAME_TRUE_COLS; j++) { \
+            frame[i][j] = 0; \
+        } \
+    } \
 
 
 	// for (uint8_t i = 0; i < FRAME_TRUE_ROWS; i++) { 

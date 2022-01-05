@@ -1,11 +1,8 @@
 #include <stdint.h>
 
-#include "warp.h"
-
 #include "devSSD1331.h"
 #include "draw_triangle.h"
 #include "draw_line.h"
-#include <string.h>   /* To time calculation execution. */
 
 #ifndef GRAPHICS
 	#include "graphics.h"
@@ -20,22 +17,24 @@ void graphicsDemo(void)
 
 	devSSD1331init();
 
-	uint8_t point_0[2] = {1, 1};
-	uint8_t point_1[2] = {20, 1};
-	drawLine(frame, point_0, point_1, B, MAX_RELATIVE_INTENSITY);
+	Triangle2D tri;
 
-	point_0[X] = 1; point_0[Y] = 1;
-	point_1[X] = 20; point_1[Y] = 30;
-	drawLine(frame, point_0, point_1, G, MAX_RELATIVE_INTENSITY);
+	tri.colour = B;
+	tri.relative_intensity = 1;
 
-	point_0[X] = 20; point_0[Y] = 35;
-	point_1[X] = 1; point_1[Y] = 5;
-	drawLine(frame, point_0, point_1, R, MAX_RELATIVE_INTENSITY);
+	tri.vs[0][X] = 4; tri.vs[0][Y] = 0;
+	tri.vs[1][X] = 35; tri.vs[1][Y] = 27;
+	tri.vs[2][X] = 1; tri.vs[2][Y] = 35;
 
-	point_0[X] = 33; point_0[Y] = 35;
-	point_1[X] = 33; point_1[Y] = 1;
-	drawLine(frame, point_0, point_1, R, MAX_RELATIVE_INTENSITY);
+	drawTriangle(frame, tri);
 
+	tri.colour = G;
+	tri.relative_intensity = 3;
+	tri.vs[0][X] = 20; tri.vs[0][Y] = 0;
+	tri.vs[1][X] = 35; tri.vs[1][Y] = 16;
+	tri.vs[2][X] = 26; tri.vs[2][Y] = 20;
+
+	drawTriangle(frame, tri);
 
 	// for (int i = 0; i < FRAME_NUM_ROWS; i++) {
 	// 	for (int j = 0; j < FRAME_NUM_COLS; j++) {
@@ -45,6 +44,4 @@ void graphicsDemo(void)
 	// }
 
 	writeFrame(frame);
-
-	warpPrint("done\n");
 }
