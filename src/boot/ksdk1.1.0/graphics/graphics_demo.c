@@ -23,29 +23,9 @@ void graphicsDemo(void)
 
 	devSSD1331init();
 
-	for (uint8_t x = 0; x < FRAME_NUM_COLS; x++) {
-		for (uint8_t y = 0; y < 5; y++) {
-			drawPixel(frame, x, y, B, 0);
-		}
-	}
+	// drawHorizontalLine(frame, 1, 1, 34, G, MAX_RELATIVE_INTENSITY);
 
-	for (uint8_t x = 0; x < FRAME_NUM_COLS; x++) {
-		for (uint8_t y = 5; y < 10; y++) {
-			drawPixel(frame, x, y, B, 1);
-		}
-	}
-
-	for (uint8_t x = 0; x < FRAME_NUM_COLS; x++) {
-		for (uint8_t y = 10; y < 15; y++) {
-			drawPixel(frame, x, y, B, 2);
-		}
-	}
-
-	for (uint8_t x = 0; x < FRAME_NUM_COLS; x++) {
-		for (uint8_t y = 15; y < 20; y++) {
-			drawPixel(frame, x, y, B, 3);
-		}
-	}
+	// drawHorizontalLine(frame, 34, 1, 34, R, MAX_RELATIVE_INTENSITY);
 
 	writeFrame(frame);
 

@@ -13,7 +13,7 @@ void drawLine(
     uint8_t point_0[2],
     uint8_t point_1[2],
     uint8_t colour,
-    uint8_t distance
+    uint8_t relative_intensity
 );
 
 void drawHorizontalLine(
@@ -22,5 +22,5 @@ void drawHorizontalLine(
     uint8_t x0,
     uint8_t x1,
     uint8_t colour,
-    uint8_t distance
+    uint8_t relative_intensity
 );

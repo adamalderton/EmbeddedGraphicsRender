@@ -162,10 +162,10 @@ void drawHorizontalLine(
     uint8_t x0,
     uint8_t x1,
     uint8_t colour,
-    uint8_t distance
+    uint8_t relative_intensity
 )
 {
     for (uint8_t x = x0; x <= x1; x++) {
-        drawPixel(frame, x, y, colour, distance);
+        drawPixel(frame, x, y, colour, relative_intensity);
     }
 }

@@ -112,8 +112,6 @@ void writeFrame(uint8_t frame[FRAME_TRUE_ROWS][FRAME_TRUE_COLS])
 
 			pixel_value = get_pixel_value_rowcol(frame, col, row);
 
-			warpPrint("%d ", pixel_value);
-
 			/*
 				Calculate final result to store in the 16 bit payload. This is simply the colour and the ratio of
 				the distance to the maximum distance mapped to the minimum and maximum intensity.
@@ -140,7 +138,6 @@ void writeFrame(uint8_t frame[FRAME_TRUE_ROWS][FRAME_TRUE_COLS])
 			/* Column pointer in SSD1331 internally updates here. */
 		}
 		/* Row column pointer in SSD1331 internally updates here. */
-		warpPrint("\n");
 	}
 
 	/* Upon the final data read, the SSD1331 resets the internal row and column pointers. */
@@ -151,7 +148,7 @@ void writeFrame(uint8_t frame[FRAME_TRUE_ROWS][FRAME_TRUE_COLS])
 
 void devSSD1331init(void)
 {
-		/*
+	/*
 	 *	Override Warp firmware's use of these pins.
 	 *
 	 *	Re-configure SPI to be on PTA8 and PTA9 for MOSI and SCK respectively.
@@ -182,107 +179,88 @@ void devSSD1331init(void)
 	OSA_TimeDelay(100);
 
 	/*
-	 *	Initialization sequence, borrowed from https://github.com/adafruit/Adafruit-SSD1331-OLED-Driver-Library-for-Arduino
+		Initialization sequence, borrowed from https://github.com/adafruit/Adafruit-SSD1331-OLED-Driver-Library-for-Arduino
 	 */
-	writeCommand(kSSD1331CommandDISPLAYOFF);	// 0xAE
-	writeCommand(kSSD1331CommandSETREMAP);		// 0xA0
-	writeCommand(0x72);							// RGB Color
-	writeCommand(kSSD1331CommandSTARTLINE);		// 0xA1
+	writeCommand(kSSD1331CommandDISPLAYOFF);
+	writeCommand(kSSD1331CommandSETREMAP);
+	writeCommand(0x72);
+	writeCommand(kSSD1331CommandSTARTLINE);
 	writeCommand(0x0);
-	writeCommand(kSSD1331CommandDISPLAYOFFSET);	// 0xA2
+	writeCommand(kSSD1331CommandDISPLAYOFFSET);
 	writeCommand(0x0);
-	writeCommand(kSSD1331CommandNORMALDISPLAY);	// 0xA4
-	writeCommand(kSSD1331CommandSETMULTIPLEX);	// 0xA8
-	writeCommand(0x3F);							// 0x3F 1/64 duty
-	writeCommand(kSSD1331CommandSETMASTER);		// 0xAD
+	writeCommand(kSSD1331CommandNORMALDISPLAY);
+	writeCommand(kSSD1331CommandSETMULTIPLEX);
+	writeCommand(0x3F);
+	writeCommand(kSSD1331CommandSETMASTER);
 	writeCommand(0x8E);
-	writeCommand(kSSD1331CommandPOWERMODE);		// 0xB0
+	writeCommand(kSSD1331CommandPOWERMODE);
 	writeCommand(0x0B);
-	writeCommand(kSSD1331CommandPRECHARGE);		// 0xB1
+	writeCommand(kSSD1331CommandPRECHARGE);
 	writeCommand(0x31);
-	writeCommand(kSSD1331CommandCLOCKDIV);		// 0xB3
+	writeCommand(kSSD1331CommandCLOCKDIV);
 	writeCommand(0xF0);							// 7:4 = Oscillator Frequency, 3:0 = CLK Div Ratio (A[3:0]+1 = 1..16)
-	writeCommand(kSSD1331CommandPRECHARGEA);	// 0x8A
+	writeCommand(kSSD1331CommandPRECHARGEA);
 	writeCommand(0x64);
-	writeCommand(kSSD1331CommandPRECHARGEB);	// 0x8B
+	writeCommand(kSSD1331CommandPRECHARGEB);
 	writeCommand(0x78);
-	writeCommand(kSSD1331CommandPRECHARGEA);	// 0x8C
+	writeCommand(kSSD1331CommandPRECHARGEA);
 	writeCommand(0x64);
-	writeCommand(kSSD1331CommandPRECHARGELEVEL);	// 0xBB
+	writeCommand(kSSD1331CommandPRECHARGELEVEL);
 	writeCommand(0x3A);
-	writeCommand(kSSD1331CommandVCOMH);		// 0xBE
+	writeCommand(kSSD1331CommandVCOMH);
 	writeCommand(0x3E);
-	writeCommand(kSSD1331CommandMASTERCURRENT);	// 0x87
+	writeCommand(kSSD1331CommandMASTERCURRENT);
 	writeCommand(0x06);
-	writeCommand(kSSD1331CommandCONTRASTA);		// 0x81
+	writeCommand(kSSD1331CommandCONTRASTA);
 	writeCommand(0x91);
-	writeCommand(kSSD1331CommandCONTRASTB);		// 0x82
+	writeCommand(kSSD1331CommandCONTRASTB);
 	writeCommand(0x50);
-	writeCommand(kSSD1331CommandCONTRASTC);		// 0x83
+	writeCommand(kSSD1331CommandCONTRASTC);
 	writeCommand(0x7D);
-	writeCommand(kSSD1331CommandDISPLAYON);		// Turn on OLED panel
+	writeCommand(kSSD1331CommandDISPLAYON);
 
-	SEGGER_RTT_WriteString(0, "\r\n\tDone with initialization sequence...\n");
+	/* End of standard initialisation sequence. */
+
+	/* Clear screen. */
 
 	writeCommand(kSSD1331CommandCLEAR);
 	writeCommand(0x00);
 	writeCommand(0x00);
 	writeCommand(0x5F);
 	writeCommand(0x3F);
-	SEGGER_RTT_WriteString(0, "\r\n\tDone with screen clear...\n");
 
-	SEGGER_RTT_WriteString(0, "\r\n\tShow a sample rectangle to confirm successfull interaction with display\n");
-
-	/*
-		Draw a blue rectangle with a green border to test the screen.
-	*/
-	writeCommand(kSSD1331CommandFILL);
-	writeCommand(0x01);
+	/* Draw an unfilled white rectangle to demarcate the frame bounds on the display. */
 
 	writeCommand(kSSD1331CommandDRAWRECT);
-
-	/* Screen has 95 columns and 63 rows, hence whole screen is specified below. */
-	writeCommand(0x00);
-	writeCommand(0x00);
-	writeCommand(0x5F);
-	writeCommand(0x3F);
+	writeCommand((SCREEN_MAX_COLS / 2) - (FRAME_NUM_COLS / 2) - 1); /* Start column. */
+	writeCommand((SCREEN_MAX_ROWS / 2) - (FRAME_NUM_ROWS / 2) - 1); /* Start row. */
+	writeCommand((SCREEN_MAX_COLS / 2) + (FRAME_NUM_COLS / 2)); /* End column. */
+	writeCommand((SCREEN_MAX_ROWS / 2) + (FRAME_NUM_ROWS / 2)); /* End row. */
 
 	/* Set outline colour (white). */
 	writeCommand(0xFF);
 	writeCommand(0xFF);
 	writeCommand(0xFF);
 
-	/* Set rectangle fill colour (brightest blue). */
+	/* Set rectangle fill colour (not used). */
 	writeCommand(0);
 	writeCommand(0);
-	writeCommand(0xFF);
-
-	/* Show rectangle for 1 second. */
-	OSA_TimeDelay(1000);
-
-	writeCommand(kSSD1331CommandCLEAR);
-	writeCommand(0x00);
-	writeCommand(0x00);
-	writeCommand(0x5F);
-	writeCommand(0x3F);
-	SEGGER_RTT_WriteString(0, "\r\n\tDone with sample rectangle.\n");
+	writeCommand(0);
 
 	/*
-		The end of the standard initialisation sequence.
-
 		Next, we set the write area of the screen. This assumes that the constants defined below
-		are even, although truncation is likely okay if not.
+		are even, (warnings are provided if not).
 	*/
+
+	if ((FRAME_NUM_COLS % 2) || (FRAME_NUM_ROWS % 2)) {
+		warpPrint("\n\n\t***Warning: Frame dimensions are not even, they must be.***\n\n");
+	}
+
 	writeCommand(kSSD1331CommandSETCOLUMN);
 	writeCommand((SCREEN_MAX_COLS / 2) - (FRAME_NUM_COLS / 2)); /* Starting column. */
 	writeCommand((SCREEN_MAX_COLS / 2) + (FRAME_NUM_COLS / 2) - 1); /* End column. */
 	
 	writeCommand(kSSD1331CommandSETROW);
 	writeCommand((SCREEN_MAX_ROWS / 2) - (FRAME_NUM_ROWS / 2)); /* Start row. */
-	writeCommand((SCREEN_MAX_ROWS / 2) + (FRAME_NUM_ROWS / 2) - 1); /* End column. */
-
-	warpPrint("Frame columns: (%d -> %d)\n", (SCREEN_MAX_COLS / 2) - (FRAME_NUM_COLS / 2), (SCREEN_MAX_COLS / 2) + (FRAME_NUM_COLS / 2));
-	warpPrint("Frame rows:    (%d -> %d)\n", (SCREEN_MAX_ROWS / 2) - (FRAME_NUM_ROWS / 2), (SCREEN_MAX_ROWS / 2) + (FRAME_NUM_ROWS / 2));
-
-	SEGGER_RTT_WriteString(0, "\r\n\tDone with initialisation sequence.\n");
+	writeCommand((SCREEN_MAX_ROWS / 2) + (FRAME_NUM_ROWS / 2) - 1); /* End row. */
 }
