@@ -31,18 +31,18 @@ void drawPixel(
     frame[FRAME_NUM_ROWS - y - 1][x / PIXELS_PER_BYTE] += (colour << shift) + ( (relative_intensity << PIXELS_PER_BYTE) << shift );
 }
 
-// /* Gets the 4 bit pixel value by referencing the frame buffer in the x-y basis. */
-// uint8_t get_pixel_value_xy(uint8_t frame[FRAME_TRUE_ROWS][FRAME_TRUE_COLS], uint8_t x, uint8_t y)
-// {
-//     uint8_t shift = BITS_PER_PIXEL * (x % PIXELS_PER_BYTE);
+/* Gets the 4 bit pixel value by referencing the frame buffer in the x-y basis. */
+uint8_t get_pixel_value_xy(uint8_t frame[FRAME_TRUE_ROWS][FRAME_TRUE_COLS], uint8_t x, uint8_t y)
+{
+    uint8_t shift = BITS_PER_PIXEL * (x % PIXELS_PER_BYTE);
 
-//     return ( ( frame[y][x / PIXELS_PER_BYTE] & (PIXEL_BITMASK << shift) ) >> shift );
-// }
+    return ( ( frame[FRAME_NUM_ROWS - y - 1][x / PIXELS_PER_BYTE] & (PIXEL_BITMASK << shift) ) >> shift );
+}
 
 /* Gets the 4 bit pixel value by referencing the frame buffer in the row-column basis. */
 uint8_t get_pixel_value_rowcol(uint8_t frame[FRAME_TRUE_ROWS][FRAME_TRUE_COLS], uint8_t row, uint8_t col)
 {
     uint8_t shift = BITS_PER_PIXEL * (col % PIXELS_PER_BYTE);
 
-    return ( ( frame[FRAME_NUM_ROWS - row - 1][col / PIXELS_PER_BYTE] & (PIXEL_BITMASK << shift) ) >> shift );
+    return ( ( frame[row][col / PIXELS_PER_BYTE] & (PIXEL_BITMASK << shift) ) >> shift );
 }

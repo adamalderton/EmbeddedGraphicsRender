@@ -101,7 +101,7 @@ void writeFrame(uint8_t frame[FRAME_TRUE_ROWS][FRAME_TRUE_COLS])
 	/* Drive DC high. This ensures that the SSD1331 is expecting DATA as opposed to a command. */
 	GPIO_DRV_SetPinOutput(kSSD1331PinDC);
 
-	for (uint8_t row = FRAME_NUM_ROWS - 1; row != 255; row--) { /* row != 255 as row is unsigned. */
+	for (uint8_t row = 0; row < FRAME_NUM_ROWS; row++) {
 		for (uint8_t col = 0; col < FRAME_NUM_COLS; col++) {
 			payload = 0;
 
