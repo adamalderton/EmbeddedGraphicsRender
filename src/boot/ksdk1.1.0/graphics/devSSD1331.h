@@ -1,6 +1,10 @@
 /*
  *	See https://github.com/adafruit/Adafruit-SSD1331-OLED-Driver-Library-for-Arduino for the Arduino driver.
  */
+#ifndef STDINT
+	#include <stdint.h>
+	#define STDINT
+#endif
 
 #ifndef GRAPHICS
 	#include "graphics.h"
@@ -17,9 +21,9 @@
 	The extra precision granted by G_0 is truncated away, as mentioned.
 */
 typedef enum {
-	RED_LEFT_SHIFT = 0,
+	RED_LEFT_SHIFT = 11,
 	GREEN_LEFT_SHIFT = 6,
-	BLUE_LEFT_SHIFT = 11,
+	BLUE_LEFT_SHIFT = 0,
 } ColourBitShifts;
 
 typedef enum
@@ -63,4 +67,5 @@ typedef enum
 } SSD1331Commands;
 
 void devSSD1331init(void);
-void writeFrame(uint8_t frame[FRAME_NUM_ROWS][FRAME_NUM_COLS][FRAME_NUM_COLOURS]);
+void writeFrame(uint8_t frame[FRAME_TRUE_ROWS][FRAME_TRUE_COLS]);
+// void writeFrame(void);

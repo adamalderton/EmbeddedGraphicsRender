@@ -177,7 +177,7 @@
 #endif
 
 #if (WARP_BUILD_ENABLE_GRAPHICS)
-	#include "graphics_render.h"
+	#include "graphics_demo.h"
 #endif
 
 

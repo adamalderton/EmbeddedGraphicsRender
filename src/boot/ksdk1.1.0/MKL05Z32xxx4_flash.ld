@@ -50,8 +50,12 @@
 /* Entry Point */
 ENTRY(Reset_Handler)
 
+/*
 HEAP_SIZE  = DEFINED(__heap_size__)  ? __heap_size__  : 0x0200;
 STACK_SIZE = DEFINED(__stack_size__) ? __stack_size__ : 0x0100;
+*/
+HEAP_SIZE  = DEFINED(__heap_size__)  ? __heap_size__  : 0x0000;
+STACK_SIZE = DEFINED(__stack_size__) ? __stack_size__ : 0x02FF;
 M_VECTOR_RAM_SIZE = DEFINED(__ram_vector_table__) ? 0x0100 : 0x0;
 
 /* Specify the memory areas */
@@ -60,7 +64,8 @@ MEMORY
   m_interrupts          (RX)  : ORIGIN = 0x00000000, LENGTH = 0x00000100
   m_flash_config        (RX)  : ORIGIN = 0x00000400, LENGTH = 0x00000010
   m_text                (RX)  : ORIGIN = 0x00000410, LENGTH = 0x00007BF0
-  m_data                (RW)  : ORIGIN = 0x1FFFFC00, LENGTH = 0x00001000
+  /*  m_data                (RW)  : ORIGIN = 0x1FFFFC00, LENGTH = 0x00001000 */
+  m_data                (RW)  : ORIGIN = 0x1FFFFC00, LENGTH = 0x00002000
 }
 
 /* Define output sections */

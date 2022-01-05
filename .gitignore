@@ -4,5 +4,4 @@ setup.conf
 tools/scripts/warp.jlink.commands
 tools/scripts/glaux.jlink.commands
 .vscode/
-local_prototyping/render.exe
-local_prototyping/frame.txt
+local_prototyping/
