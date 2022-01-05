@@ -55,7 +55,7 @@ HEAP_SIZE  = DEFINED(__heap_size__)  ? __heap_size__  : 0x0200;
 STACK_SIZE = DEFINED(__stack_size__) ? __stack_size__ : 0x0100;
 */
 HEAP_SIZE  = DEFINED(__heap_size__)  ? __heap_size__  : 0x0000;
-STACK_SIZE = DEFINED(__stack_size__) ? __stack_size__ : 0x02FF;
+STACK_SIZE = DEFINED(__stack_size__) ? __stack_size__ : 0x0470;
 M_VECTOR_RAM_SIZE = DEFINED(__ram_vector_table__) ? 0x0100 : 0x0;
 
 /* Specify the memory areas */

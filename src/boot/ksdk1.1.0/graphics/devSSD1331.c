@@ -110,7 +110,11 @@ void writeFrame(uint8_t frame[FRAME_TRUE_ROWS][FRAME_TRUE_COLS])
 		for (uint8_t col = 0; col < FRAME_NUM_COLS; col++) {
 			payload = 0;
 
-			pixel_value = get_pixel_value_rowcol(frame, col, row);
+			pixel_value = get_pixel_value_rowcol(frame, row, col);
+
+			if (pixel_value != 0) {
+				warpPrint("(%d, %d, %d)\n", pixel_value, row, col);
+			}
 
 			/*
 				Calculate final result to store in the 16 bit payload. This is simply the colour and the ratio of
@@ -198,7 +202,7 @@ void devSSD1331init(void)
 	writeCommand(kSSD1331CommandPRECHARGE);
 	writeCommand(0x31);
 	writeCommand(kSSD1331CommandCLOCKDIV);
-	writeCommand(0xF0);							// 7:4 = Oscillator Frequency, 3:0 = CLK Div Ratio (A[3:0]+1 = 1..16)
+	writeCommand(0xF0); /* Max clock speed. */
 	writeCommand(kSSD1331CommandPRECHARGEA);
 	writeCommand(0x64);
 	writeCommand(kSSD1331CommandPRECHARGEB);

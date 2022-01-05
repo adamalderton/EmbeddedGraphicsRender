@@ -77,6 +77,16 @@
     dest[X] = src[X]; \
     dest[Y] = src[Y];
 
+#define RESET_FRAME(frame) \
+    memset(frame, 0, sizeof(frame[0][0]) * FRAME_TRUE_ROWS * FRAME_TRUE_COLS)
+
+
+	// for (uint8_t i = 0; i < FRAME_TRUE_ROWS; i++) { 
+	// 	for (uint8_t j = 0; j < FRAME_TRUE_COLS; j++){ 
+	// 		frame[i][j] = 0;
+	// 	} 
+	// }
+
 typedef enum {
     X,
     Y,
@@ -99,4 +109,4 @@ void drawPixel(
 );
 
 // uint8_t get_pixel_value_xy(uint8_t frame[FRAME_TRUE_ROWS][FRAME_TRUE_COLS], uint8_t x, uint8_t y);
-uint8_t get_pixel_value_rowcol(uint8_t frame[FRAME_TRUE_ROWS][FRAME_TRUE_COLS], uint8_t col, uint8_t row);
+uint8_t get_pixel_value_rowcol(uint8_t frame[FRAME_TRUE_ROWS][FRAME_TRUE_COLS], uint8_t row, uint8_t col);

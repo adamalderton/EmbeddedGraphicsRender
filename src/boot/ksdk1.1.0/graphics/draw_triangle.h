@@ -22,16 +22,14 @@ typedef struct {
     /* 
         Can only be one of those defined in the Colours enum in graphics.h.
         That is, only 00 for black, 01 for red, 10 for green or 11 for blue.
-        This MUST be 2 bits.
+        Must fit in 2 bits.
     */
     uint8_t colour;
 
     /*
-        Must be within the range 0 and 63. That is, 0 should be mapped to the closest distance
-        and 63 should be mapped to the furthest distance.
-        This MUST be 6 bits.
+        Must fit in 2 bits, hence be either 0, 1, 2, or 3.
     */
-    uint8_t distance;
+    uint8_t relative_intensity;
 
     /* Three two-dimensional vertices. */
     uint8_t vs[3][2];
