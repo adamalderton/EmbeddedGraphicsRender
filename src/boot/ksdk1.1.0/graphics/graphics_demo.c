@@ -19,29 +19,27 @@ void graphicsDemo(void)
 
 	Triangle2D tri;
 
-	tri.colour = B;
-	tri.relative_intensity = 1;
+	for (uint8_t n = 0; n < 10; n++) {
+		RESET_FRAME(frame);
 
-	tri.vs[0][X] = 4; tri.vs[0][Y] = 0;
-	tri.vs[1][X] = 35; tri.vs[1][Y] = 27;
-	tri.vs[2][X] = 1; tri.vs[2][Y] = 35;
+		tri.colour = (n % 4) + 1;
+		tri.relative_intensity = 1;
 
-	drawTriangle(frame, tri);
+		tri.vs[0][X] = 4; tri.vs[0][Y] = 0;
+		tri.vs[1][X] = 35; tri.vs[1][Y] = 27;
+		tri.vs[2][X] = 1; tri.vs[2][Y] = 35;
 
-	tri.colour = G;
-	tri.relative_intensity = 3;
-	tri.vs[0][X] = 20; tri.vs[0][Y] = 0;
-	tri.vs[1][X] = 35; tri.vs[1][Y] = 16;
-	tri.vs[2][X] = 26; tri.vs[2][Y] = 20;
+		drawTriangle(frame, tri);
 
-	drawTriangle(frame, tri);
+		tri.colour = G;
+		tri.relative_intensity = 3;
+		tri.vs[0][X] = 20; tri.vs[0][Y] = 0;
+		tri.vs[1][X] = 35; tri.vs[1][Y] = 16;
+		tri.vs[2][X] = 26; tri.vs[2][Y] = 35;
 
-	// for (int i = 0; i < FRAME_NUM_ROWS; i++) {
-	// 	for (int j = 0; j < FRAME_NUM_COLS; j++) {
-	// 		warpPrint("%d ", frame[i][j]);
-	// 	}
-	// 	warpPrint("\n");
-	// }
+		drawTriangle(frame, tri);
 
-	writeFrame(frame);
+		writeFrame(frame);
+	}
 }
+

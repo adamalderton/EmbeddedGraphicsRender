@@ -13,7 +13,7 @@
 #define FRAME_NUM_COLS 36
 
 /* Used to display wireframe triangles - useful for debugging. 1 for yes, 0 for no. */
-#define WIREFRAME 1
+#define WIREFRAME 0
 
 /* Used to display a square outline to display the limits of the frame on the OLED display. 1 for yes, 0 for no. */
 #define OUTER_FRAME 0

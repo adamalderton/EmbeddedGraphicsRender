@@ -1,6 +1,7 @@
 /*
  *	See https://github.com/adafruit/Adafruit-SSD1331-OLED-Driver-Library-for-Arduino for the Arduino driver.
  */
+
 #ifndef STDINT
 	#include <stdint.h>
 	#define STDINT
