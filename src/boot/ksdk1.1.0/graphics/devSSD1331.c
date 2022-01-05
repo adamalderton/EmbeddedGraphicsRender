@@ -110,7 +110,9 @@ void writeFrame(uint8_t frame[FRAME_TRUE_ROWS][FRAME_TRUE_COLS])
 		for (uint8_t col = 0; col < FRAME_NUM_COLS; col++) {
 			payload = 0;
 
-			pixel_value = get_pixel_value_rowcol(frame, row, col);
+			pixel_value = get_pixel_value_rowcol(frame, col, row);
+
+			warpPrint("%d ", pixel_value);
 
 			/*
 				Calculate final result to store in the 16 bit payload. This is simply the colour and the ratio of
@@ -138,6 +140,7 @@ void writeFrame(uint8_t frame[FRAME_TRUE_ROWS][FRAME_TRUE_COLS])
 			/* Column pointer in SSD1331 internally updates here. */
 		}
 		/* Row column pointer in SSD1331 internally updates here. */
+		warpPrint("\n");
 	}
 
 	/* Upon the final data read, the SSD1331 resets the internal row and column pointers. */
@@ -272,11 +275,11 @@ void devSSD1331init(void)
 	*/
 	writeCommand(kSSD1331CommandSETCOLUMN);
 	writeCommand((SCREEN_MAX_COLS / 2) - (FRAME_NUM_COLS / 2)); /* Starting column. */
-	writeCommand((SCREEN_MAX_COLS / 2) + (FRAME_NUM_COLS / 2)); /* End column. */
+	writeCommand((SCREEN_MAX_COLS / 2) + (FRAME_NUM_COLS / 2) - 1); /* End column. */
 	
 	writeCommand(kSSD1331CommandSETROW);
 	writeCommand((SCREEN_MAX_ROWS / 2) - (FRAME_NUM_ROWS / 2)); /* Start row. */
-	writeCommand((SCREEN_MAX_ROWS / 2) + (FRAME_NUM_ROWS / 2)); /* End column. */
+	writeCommand((SCREEN_MAX_ROWS / 2) + (FRAME_NUM_ROWS / 2) - 1); /* End column. */
 
 	warpPrint("Frame columns: (%d -> %d)\n", (SCREEN_MAX_COLS / 2) - (FRAME_NUM_COLS / 2), (SCREEN_MAX_COLS / 2) + (FRAME_NUM_COLS / 2));
 	warpPrint("Frame rows:    (%d -> %d)\n", (SCREEN_MAX_ROWS / 2) - (FRAME_NUM_ROWS / 2), (SCREEN_MAX_ROWS / 2) + (FRAME_NUM_ROWS / 2));

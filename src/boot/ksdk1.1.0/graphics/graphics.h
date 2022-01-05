@@ -11,8 +11,8 @@
     display window which uses nearly all of the vertical space in the screen. This frame buffer fits into
     1600 bytes.
 */
-#define FRAME_NUM_ROWS 20
-#define FRAME_NUM_COLS 20
+#define FRAME_NUM_ROWS 36
+#define FRAME_NUM_COLS 36
 #define PIXELS_PER_BYTE 2
 #define FRAME_NUM_COLOURS 3
 

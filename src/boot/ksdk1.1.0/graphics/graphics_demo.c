@@ -21,25 +21,31 @@ void graphicsDemo(void)
 		}
 	}
 
-	// for (uint8_t x = 0; x < 10; x++) {
-	// 	for (uint8_t y = 0; y < FRAME_NUM_COLS; y++){
-	// 		drawPixel(frame, x, y, B, MAX_RELATIVE_INTENSITY);
-	// 	}
-	// }
-
-	// for (uint8_t x = 10; x < 15; x++) {
-	// 	for (uint8_t y = 0; y < FRAME_NUM_COLS; y++){
-	// 		drawPixel(frame, x, y, R, MAX_RELATIVE_INTENSITY);
-	// 	}
-	// }
-	
-	for (uint8_t x = 0; x < 40; x++) {
-		drawPixel(frame, x, 0, B, MAX_RELATIVE_INTENSITY);
-	}
-
 	devSSD1331init();
 
-	warpPrint("devSSD1331init complete!\n");
+	for (uint8_t x = 0; x < FRAME_NUM_COLS; x++) {
+		for (uint8_t y = 0; y < 5; y++) {
+			drawPixel(frame, x, y, B, 0);
+		}
+	}
+
+	for (uint8_t x = 0; x < FRAME_NUM_COLS; x++) {
+		for (uint8_t y = 5; y < 10; y++) {
+			drawPixel(frame, x, y, B, 1);
+		}
+	}
+
+	for (uint8_t x = 0; x < FRAME_NUM_COLS; x++) {
+		for (uint8_t y = 10; y < 15; y++) {
+			drawPixel(frame, x, y, B, 2);
+		}
+	}
+
+	for (uint8_t x = 0; x < FRAME_NUM_COLS; x++) {
+		for (uint8_t y = 15; y < 20; y++) {
+			drawPixel(frame, x, y, B, 3);
+		}
+	}
 
 	writeFrame(frame);
 
