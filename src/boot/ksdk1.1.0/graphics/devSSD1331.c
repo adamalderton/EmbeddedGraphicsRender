@@ -61,13 +61,8 @@ static int writeCommand(uint8_t commandByte)
 /*
 	With a frame fully drawn in the 'frame' array, we now write it to the Graphics Display RAM
 	(GDRAM) within the chip over an SPI interface. Please see the SSD1331 datasheet for more information.
-
-	It is wise to consider FR synchronisation with the writing process of the SSD1331 to the display. Implemented
-	properly, a 'shearing' effect is minimised which would otherwise be a problem as the GDRAM is written to
-	asynchronously.
 */
 void writeFrame(uint8_t frame[FRAME_TRUE_ROWS][FRAME_TRUE_COLS])
-// void writeFrame(void)
 {
 	/*
 		The default writing format in which the SSD1331 chip expects to receive data is column wise. That is,
@@ -229,23 +224,27 @@ void devSSD1331init(void)
 	writeCommand(0x5F);
 	writeCommand(0x3F);
 
-	/* Draw an unfilled white rectangle to demarcate the frame bounds on the display. */
+	#if (OUTER_FRAME)
 
-	writeCommand(kSSD1331CommandDRAWRECT);
-	writeCommand((SCREEN_MAX_COLS / 2) - (FRAME_NUM_COLS / 2) - 1); /* Start column. */
-	writeCommand((SCREEN_MAX_ROWS / 2) - (FRAME_NUM_ROWS / 2) - 1); /* Start row. */
-	writeCommand((SCREEN_MAX_COLS / 2) + (FRAME_NUM_COLS / 2)); /* End column. */
-	writeCommand((SCREEN_MAX_ROWS / 2) + (FRAME_NUM_ROWS / 2)); /* End row. */
+		/* Draw an unfilled white rectangle to demarcate the frame bounds on the display. */
 
-	/* Set outline colour (white). */
-	writeCommand(0xFF);
-	writeCommand(0xFF);
-	writeCommand(0xFF);
+		writeCommand(kSSD1331CommandDRAWRECT);
+		writeCommand((SCREEN_MAX_COLS / 2) - (FRAME_NUM_COLS / 2) - 1); /* Start column. */
+		writeCommand((SCREEN_MAX_ROWS / 2) - (FRAME_NUM_ROWS / 2) - 1); /* Start row. */
+		writeCommand((SCREEN_MAX_COLS / 2) + (FRAME_NUM_COLS / 2)); /* End column. */
+		writeCommand((SCREEN_MAX_ROWS / 2) + (FRAME_NUM_ROWS / 2)); /* End row. */
 
-	/* Set rectangle fill colour (not used). */
-	writeCommand(0);
-	writeCommand(0);
-	writeCommand(0);
+		/* Set outline colour (white). */
+		writeCommand(0xFF);
+		writeCommand(0xFF);
+		writeCommand(0xFF);
+
+		/* Set rectangle fill colour (not used). */
+		writeCommand(0);
+		writeCommand(0);
+		writeCommand(0);
+
+	#endif
 
 	/*
 		Next, we set the write area of the screen. This assumes that the constants defined below

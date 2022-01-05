@@ -3,18 +3,25 @@
 	#define STDINT
 #endif
 
-#define SCREEN_MAX_COLS 96
-#define SCREEN_MAX_ROWS 64
+/*================== START OF CUSTOMISABLE QUANTITIES ==================*/
 
 /*
-    Under the 4 bit pixel description described elsewhere, there is room for a 56 x 56
-    display window which uses nearly all of the vertical space in the screen. This frame buffer fits into
-    1600 bytes.
+    Must ensure that ((FRAME_NUM_ROWS * FRAME_NUM_COLS) / PIXELS_PER_BYTE) fits into the stack size
+    with room left over for other variables, especially the graphic scene to be loaded. 
 */
 #define FRAME_NUM_ROWS 36
 #define FRAME_NUM_COLS 36
-#define PIXELS_PER_BYTE 2
-#define FRAME_NUM_COLOURS 3
+
+/* Used to display wireframe triangles - useful for debugging. 1 for yes, 0 for no. */
+#define WIREFRAME 1
+
+/* Used to display a square outline to display the limits of the frame on the OLED display. 1 for yes, 0 for no. */
+#define OUTER_FRAME 0
+
+/*=================== END OF CUSTOMISABLE QUANTITIES ===================*/
+
+#define SCREEN_MAX_COLS 96
+#define SCREEN_MAX_ROWS 64
 
 /*
     Used to easily defined the correct sized array.
@@ -38,6 +45,16 @@
 */
 #define MAX_RELATIVE_INTENSITY 3
 #define MAX_RELATIVE_INTENSITY_FLOAT 3.0 /* To prevent repeated casting. */
+
+/*
+    2 pixels are stored in a byte. Each is granted 4 bits of storage.
+    2 bits per pixel are assigned to colour, hence the maximum 'colour' is b11 = 3.
+    This means there are actually 4 colours (one being blank = off = black), however
+    FRAME_NUM_COLOURS is defined as three for more pragmatic iteration in other parts 
+    of the code.
+*/
+#define PIXELS_PER_BYTE 2
+#define FRAME_NUM_COLOURS 3
 
 /*
     Used to extract colour and distance out of 4 bit pixel value.

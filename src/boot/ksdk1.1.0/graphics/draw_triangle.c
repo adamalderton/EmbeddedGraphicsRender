@@ -296,80 +296,90 @@ static void drawFlatBottomTriangle(uint8_t frame[FRAME_TRUE_ROWS][FRAME_TRUE_COL
 */
 void drawTriangle(uint8_t frame[FRAME_TRUE_ROWS][FRAME_TRUE_COLS], Triangle2D tri)
 {
-    /* Sort triangle vertices in ascending order. Triangle will be drawn from the bottom up. */
-    sortTriangle2DVertices(&tri);
+    #if (WIREFRAME)
 
-    /* Simple case of top flat triangle only. */
-    if (tri.vs[0][Y] == tri.vs[1][Y]) {
+        drawLine(frame, tri.vs[0], tri.vs[1], tri.colour, tri.relative_intensity);
+        drawLine(frame, tri.vs[1], tri.vs[2], tri.colour, tri.relative_intensity);
+        drawLine(frame, tri.vs[2], tri.vs[0], tri.colour, tri.relative_intensity);
+
+    #else
+
+        /* Sort triangle vertices in ascending order. Triangle will be drawn from the bottom up. */
+        sortTriangle2DVertices(&tri);
+
+        /* Simple case of top flat triangle only. */
+        if (tri.vs[0][Y] == tri.vs[1][Y]) {
+            drawFlatTopTriangle(frame, tri);
+            return;
+        }
+
+        /* Simple case of bottom flat triangle only. */
+        if (tri.vs[1][Y] == tri.vs[2][Y]) {
+            drawFlatBottomTriangle(frame, tri);
+            return;
+        }
+
+        /*
+            General Case. We split the triangle into two - a flat top and a flat bottom. 
+            We then draw both.
+
+            To do this, we first find the common fourth point. It lies along the hypotenuse
+            and shares an x value with tri.vs[1], if the vertices are sorted correctly as above.
+            To find the y coordinate of this point, we apply Thales' theorem to interpolate
+            the hypotenuse ar this x value. We will call this point Q.
+        */
+        uint8_t Q[2];
+
+        /*
+            x_Q = (x_2 - x_0)\frac{y_1 - y_0}{y_2 - y_0} + x_0
+            The float divide is rounded as opposed to truncated as of course, with an
+            extremal point like Q, the importance of rounding up is that much higher.
+
+            Value found is incremented by 0.5 such that the casting process preforms a rounding operation.
+        */
+        Q[X] = (uint8_t) ( tri.vs[0][X] + (tri.vs[2][X] - tri.vs[0][X]) * ( ( (float) (tri.vs[1][Y] - tri.vs[0][Y]) / (float) (tri.vs[2][Y] - tri.vs[0][Y]) ) ) + 0.5);
+        Q[Y] = tri.vs[1][Y];
+
+        /*
+            We first draw the bottom half, being the top flat triangle.
+
+            In doing this, we also INCLUDE the horizontal line at Q[Y]. We don't
+            include this during the drawing of the top half as it doesn't need to be drawn
+            twice.
+
+            Following the sorting of the triangle vertices, we must temporarily
+            substitute Q for the top-most vertex. We then draw the resulting top-flat triangle.
+        */
+
+        /* Substitute in Q. 'tri.vs[0]' is temporarily stored in 'Q'. */
+        swap2DVertices(tri.vs[0], Q);
+
         drawFlatTopTriangle(frame, tri);
-        return;
-    }
 
-    /* Simple case of bottom flat triangle only. */
-    if (tri.vs[1][Y] == tri.vs[2][Y]) {
+        /* Retrieve Q and reset triangle. temp now stores Q.*/
+        swap2DVertices(tri.vs[0], Q);
+
+        /*
+            We now draw the top half of the triangle.
+
+            To do this, we substitute the bottom-most vertex and draw the triangle.
+            We also increment the y value of the points on the bottom flat side by one
+            as to prevent that line from being re-drawn, as previously discussed.
+            We can do this by value as the triangle is no longer needed once drawn.
+        */
+        Q[Y]++;
+        tri.vs[1][Y]++;
+
+        swap2DVertices(tri.vs[2], Q);
+
         drawFlatBottomTriangle(frame, tri);
-        return;
-    }
 
-    /*
-        General Case. We split the triangle into two - a flat top and a flat bottom. 
-        We then draw both.
+        /*
+            The triangle drawing is finished.
 
-        To do this, we first find the common fourth point. It lies along the hypotenuse
-        and shares an x value with tri.vs[1], if the vertices are sorted correctly as above.
-        To find the y coordinate of this point, we apply Thales' theorem to interpolate
-        the hypotenuse ar this x value. We will call this point Q.
-    */
-    uint8_t Q[2];
+            If needed, Q could be re-swapped out and decremented below
+            if further manipulation is needed.
+        */
 
-    /*
-        x_Q = (x_2 - x_0)\frac{y_1 - y_0}{y_2 - y_0} + x_0
-        The float divide is rounded as opposed to truncated as of course, with an
-        extremal point like Q, the importance of rounding up is that much higher.
-
-        Value found is incremented by 0.5 such that the casting process preforms a rounding operation.
-    */
-    Q[X] = (uint8_t) ( tri.vs[0][X] + (tri.vs[2][X] - tri.vs[0][X]) * ( ( (float) (tri.vs[1][Y] - tri.vs[0][Y]) / (float) (tri.vs[2][Y] - tri.vs[0][Y]) ) ) + 0.5);
-    Q[Y] = tri.vs[1][Y];
-
-    /*
-        We first draw the bottom half, being the top flat triangle.
-
-        In doing this, we also INCLUDE the horizontal line at Q[Y]. We don't
-        include this during the drawing of the top half as it doesn't need to be drawn
-        twice.
-
-        Following the sorting of the triangle vertices, we must temporarily
-        substitute Q for the top-most vertex. We then draw the resulting top-flat triangle.
-    */
-
-    /* Substitute in Q. 'tri.vs[0]' is temporarily stored in 'Q'. */
-    swap2DVertices(tri.vs[0], Q);
-
-    drawFlatTopTriangle(frame, tri);
-
-    /* Retrieve Q and reset triangle. temp now stores Q.*/
-    swap2DVertices(tri.vs[0], Q);
-
-    /*
-        We now draw the top half of the triangle.
-
-        To do this, we substitute the bottom-most vertex and draw the triangle.
-        We also increment the y value of the points on the bottom flat side by one
-        as to prevent that line from being re-drawn, as previously discussed.
-        We can do this by value as the triangle is no longer needed once drawn.
-    */
-    Q[Y]++;
-    tri.vs[1][Y]++;
-
-    swap2DVertices(tri.vs[2], Q);
-
-    drawFlatBottomTriangle(frame, tri);
-
-    /*
-        The triangle drawing is finished.
-
-        If needed, Q could be re-swapped out and decremented below
-        if further manipulation is needed.
-    */
+    #endif
 }
