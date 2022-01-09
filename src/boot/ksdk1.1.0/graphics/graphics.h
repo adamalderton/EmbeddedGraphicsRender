@@ -115,6 +115,12 @@
 #define BITS_PER_PIXEL 4 /* sizeof(uint8_t) / PIXELS_PER_BYTE */
 
 /*
+    The amount by which to translate any vertices into the Z axis
+    such that vertices are not rendered around (0, 0, 0).
+*/
+#define Z_TRANSLATION 2.0
+
+/*
     Colour can be directly written as, in theory, shapes are rendered in the
     correct order. Additionally, intensities should be written to the frame element AFTER the colour is written.
 
@@ -156,6 +162,51 @@ typedef enum {
     G = 2,  /* Green, 10 in binary. */
     B = 3   /* Blue, 11 in binary. */
 } Colours;
+
+/*
+    While a 'vertex' struct would have had its advantages,
+    a 2D array to represent the vertices was selected such that the
+    vertices can be iteratively accessed - this circumvents the need
+    for a lot of hardcoding for access.
+
+    As a reminder, due to memory constraints, pixels cannot be composite colours.
+    That is, shapes can only be red, green or blue. They can still be different shades of
+    those colours in the interest of representing distance, for example.
+*/
+typedef struct {
+    /* 
+        Can only be one of those defined in the Colours enum in graphics.h.
+        That is, only 00 for black, 01 for red, 10 for green or 11 for blue.
+        Must fit in 2 bits.
+    */
+    uint8_t colour;
+
+    /* Three three-dimensional vertices. */
+    float vs[3][3];
+
+    /*
+        Integer operations are our friend. We will approximate floating point values with large integers
+        later to be divided.
+    */
+    float normal[3];
+} Triangle3D;
+
+typedef struct {
+    /* 
+        Can only be one of those defined in the Colours enum in graphics.h.
+        That is, only 00 for black, 01 for red, 10 for green or 11 for blue.
+        Must fit in 2 bits.
+    */
+    uint8_t colour;
+
+    /*
+        Must fit in 2 bits, hence be either 0, 1, 2, or 3.
+    */
+    uint8_t relative_intensity;
+
+    /* Three two-dimensional vertices. */
+    uint8_t vs[3][2];
+} Triangle2D;
 
 void drawPixel(
     uint8_t frame[FRAME_TRUE_ROWS][FRAME_TRUE_COLS],

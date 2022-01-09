@@ -98,7 +98,7 @@ static void drawFlatTopTriangle(uint8_t frame[FRAME_TRUE_ROWS][FRAME_TRUE_COLS],
     xB = tri.vs[2][X];
 
     /* Draw first (bottom) point. */
-    drawPixel(frame, tri.vs[2][X], y, tri.colour, MAX_RELATIVE_INTENSITY);
+    drawPixel(frame, tri.vs[2][X], y, tri.colour, tri.relative_intensity);
 
     /*
         Flat top triangle rasterisation loop.
@@ -169,7 +169,7 @@ static void drawFlatTopTriangle(uint8_t frame[FRAME_TRUE_ROWS][FRAME_TRUE_COLS],
         }
 
         /* Finally, draw the line at y = y between xA and xB. */
-        drawHorizontalLine(frame, y, xA, xB, tri.colour, MAX_RELATIVE_INTENSITY);
+        drawHorizontalLine(frame, y, xA, xB, tri.colour, tri.relative_intensity);
     }
 }
 
@@ -207,7 +207,7 @@ static void drawFlatBottomTriangle(uint8_t frame[FRAME_TRUE_ROWS][FRAME_TRUE_COL
     xB = tri.vs[2][X];
 
     /* Draw first (bottom) line. */
-    drawHorizontalLine(frame, y, xA, xB, tri.colour, MAX_RELATIVE_INTENSITY);
+    drawHorizontalLine(frame, y, xA, xB, tri.colour, tri.relative_intensity);
 
     /*
         Flat bottom triangle rasterisation loop.
@@ -278,7 +278,7 @@ static void drawFlatBottomTriangle(uint8_t frame[FRAME_TRUE_ROWS][FRAME_TRUE_COL
         }
 
         /* Finally, draw the line at y = y between xA and xB. */
-        drawHorizontalLine(frame, y, xA, xB, tri.colour, MAX_RELATIVE_INTENSITY);
+        drawHorizontalLine(frame, y, xA, xB, tri.colour, tri.relative_intensity);
     }
 }
 
