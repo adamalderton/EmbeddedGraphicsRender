@@ -53,3 +53,4 @@ uint8_t get_pixel_value_rowcol(uint8_t frame[FRAME_TRUE_ROWS][FRAME_TRUE_COLS], 
 
     return ( ( frame[row][col / PIXELS_PER_BYTE] & (PIXEL_BITMASK << shift) ) >> shift );
 }
+

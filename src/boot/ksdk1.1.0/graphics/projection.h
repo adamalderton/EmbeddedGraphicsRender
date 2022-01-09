@@ -7,3 +7,5 @@
 	#include "graphics.h"
 	#define GRAPHICS
 #endif
+
+Triangle2D project(Triangle3D);

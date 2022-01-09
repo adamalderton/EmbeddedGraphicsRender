@@ -12,13 +12,10 @@
 */
 
 /* Demonstrates correct drawing of triangles, pixel overwriting, and the speed of the program. */
-#define OVERLAPPING_2D_TRIANGLES_DEMO 1
+#define OVERLAPPING_2D_TRIANGLES_DEMO 0
 
 /*  */
-#define SPINNING_MULTICOLOUR_CUBE_DEMO 0
-
-/*  */
-#define TRIANGULAR_TOWERS_DEMO 0
+#define SPINNING_MULTICOLOUR_CUBE_DEMO 1
 
 /*=================== END OF DEMO SELECTION ========================*/
 
@@ -41,15 +38,9 @@
 #endif
 
 #if (SPINNING_MULTICOLOUR_CUBE_DEMO)
-    #define FRAME_NUM_ROWS 44
-    #define FRAME_NUM_COLS 44
-    #define GRAPHICS_OPTIMISED 1
-#endif
-
-#if (SPINNING_MULTICOLOUR_CUBE_DEMO)
-    #define FRAME_NUM_ROWS 44
-    #define FRAME_NUM_COLS 44
-    #define GRAPHICS_OPTIMISED 1
+    #define FRAME_NUM_ROWS 36
+    #define FRAME_NUM_COLS 36
+    #define GRAPHICS_OPTIMISED 0
 #endif
 
 /* Used to display wireframe triangles - useful for debugging. 1 for yes, 0 for no. */
@@ -153,13 +144,6 @@
         } \
     } \
 
-
-	// for (uint8_t i = 0; i < FRAME_TRUE_ROWS; i++) { 
-	// 	for (uint8_t j = 0; j < FRAME_TRUE_COLS; j++){ 
-	// 		frame[i][j] = 0;
-	// 	} 
-	// }
-
 typedef enum {
     X,
     Y,
@@ -181,5 +165,8 @@ void drawPixel(
     uint8_t relative_intensity
 );
 
-// uint8_t get_pixel_value_xy(uint8_t frame[FRAME_TRUE_ROWS][FRAME_TRUE_COLS], uint8_t x, uint8_t y);
+/* Gets the 4 bit pixel value by referencing the frame buffer in the x-y basis. */
+uint8_t get_pixel_value_xy(uint8_t frame[FRAME_TRUE_ROWS][FRAME_TRUE_COLS], uint8_t x, uint8_t y);
+
+/* Gets the 4 bit pixel value by referencing the frame buffer in the row-column basis. */
 uint8_t get_pixel_value_rowcol(uint8_t frame[FRAME_TRUE_ROWS][FRAME_TRUE_COLS], uint8_t row, uint8_t col);
