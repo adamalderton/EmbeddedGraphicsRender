@@ -82,36 +82,45 @@ void graphicsDemo(void)
 
 		Triangle3D tri3;
 
-		tri3.colour = R;
+		for (uint8_t j = 0; j < 5; j++) {
+			for (uint8_t rotation_num = 0; rotation_num < 255; rotation_num++) {
+				/* Extract triangle values. */
 
-		tri3.vs[0][X] = cube[0][0][X];
-		tri3.vs[0][Y] = cube[0][0][Y];
-		tri3.vs[0][Z] = cube[0][0][Z];
+				tri3.colour = R;
 
-		tri3.vs[1][X] = cube[0][1][X];
-		tri3.vs[1][Y] = cube[0][1][Y];
-		tri3.vs[1][Z] = cube[0][1][Z];
+				tri3.vs[0][X] = cube[0][0][X];
+				tri3.vs[0][Y] = cube[0][0][Y];
+				tri3.vs[0][Z] = cube[0][0][Z];
 
-		tri3.vs[2][X] = cube[0][2][X];
-		tri3.vs[2][Y] = cube[0][2][Y];
-		tri3.vs[2][Z] = cube[0][2][Z];
+				tri3.vs[1][X] = cube[0][1][X];
+				tri3.vs[1][Y] = cube[0][1][Y];
+				tri3.vs[1][Z] = cube[0][1][Z];
 
-		// rotate(&tri3, theta, phi);
+				tri3.vs[2][X] = cube[0][2][X];
+				tri3.vs[2][Y] = cube[0][2][Y];
+				tri3.vs[2][Z] = cube[0][2][Z];
 
-		/*
-			With the triangle rotated, translate it into the Z axis such that it is NOT
-			in the region of (0, 0, 0).
-		*/
-		tri3.vs[0][Z] += Z_TRANSLATION;
-		tri3.vs[1][Z] += Z_TRANSLATION;
-		tri3.vs[2][Z] += Z_TRANSLATION;
+				/*
+					With the triangle extracted, we now rotate it a certain amount for the purposes of the demo.
+					To do that, we need to define the two angles of rotation theta and phi, both analagous to their use in
+					spherical coordinates. That is, phi is the azimuthal angle.
 
-		Triangle2D tri2 = project(tri3);
+					These angles are used to collect values from the uint8_t sine_lookup table.
 
-		printf("(%d, %d)\n", tri2.vs[0][X], tri2.vs[0][Y]);
-		printf("(%d, %d)\n", tri2.vs[1][X], tri2.vs[1][Y]);
-		printf("(%d, %d)\n", tri2.vs[2][X], tri2.vs[2][Y]);
-		// drawTriangle(frame, project(tri3));
+					We will define these angles in terms of the time elapsed. **IMPLEMENT LATER**.
+				*/
+				rotate(&tri3, rotation_num);
+
+				z_translate(&tri3);
+
+				drawTriangle(frame, project(tri3));
+
+				writeFrame(frame);
+
+				RESET_FRAME(frame);
+			}
+		}
+		
 
 	#endif
 

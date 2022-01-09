@@ -17,6 +17,7 @@
 	cp ../../src/boot/ksdk1.1.0/graphics/draw_line.*			work/demos/Warp/src/
 	cp ../../src/boot/ksdk1.1.0/graphics/draw_triangle.*			work/demos/Warp/src/
 	cp ../../src/boot/ksdk1.1.0/graphics/graphics.*			work/demos/Warp/src/
+	cp ../../src/boot/ksdk1.1.0/graphics/projection.*			work/demos/Warp/src/
 	cp ../../src/boot/ksdk1.1.0/devBMX055.*				work/demos/Warp/src/
 	cp ../../src/boot/ksdk1.1.0/devADXL362.*			work/demos/Warp/src/
 	cp ../../src/boot/ksdk1.1.0/devMMA8451Q.*			work/demos/Warp/src/

@@ -70,7 +70,55 @@ const uint8_t sine_lookup[256] =
 103,106,109,112,115,118,121,124
 };
 
-void rotate(Triangle3D *tri3, float theta, float phi);
+/*
+    Translate a 3D triangle into the z axis such that is not centred around
+    (0, 0, 0). Rendering at z = 0 is undefined and rendering at z < 1 will quickly ensure 
+    that the triangle extends beyond the bound of the screen. Therefore,
+    being that rendered shapes are defined in the range (-1.0 -> 1.0) in every axis, is is recommended
+    that Z_TRANSLATION is no less than 2.0 such that points defined at z = -1.0 still render at least 
+    at z = 1.0.
+    Summary:
+        Z_TRANSLATION *MUST* be greater than 1.0 (not inclusive)
+        Z_TRANSLATION should be greater or equal to 2.0 to ensure vertices do not extend beyond the bounds of the screen.
+*/
+void z_translate(Triangle3D *tri3)
+{
+    tri3->vs[0][Z] += Z_TRANSLATION;
+	tri3->vs[1][Z] += Z_TRANSLATION;
+	tri3->vs[2][Z] += Z_TRANSLATION;
+}
+
+void rotate(Triangle3D *tri3, uint8_t rotation_num)
+{
+    /* Used to temporarily hold result of rotation. */
+    float temp[3];
+
+    /* Extract sin(angle) and cos(angle) for both theta and phi. */
+    float sin_theta = SIN_UINT8(ROTATION_RATE_THETA, rotation_num);
+    float cos_theta = COS_UINT8(ROTATION_RATE_THETA, rotation_num);
+
+    float sin_phi = SIN_UINT8(ROTATION_RATE_PHI, rotation_num);
+    float cos_phi = COS_UINT8(ROTATION_RATE_PHI, rotation_num);
+
+    /*
+        Operate rotation matrix on vertices of tri3.
+
+        Combining usual Z and X axis rotations, and defining A = cos(theta), B = sin(theta),
+        C = cos(phi) and D = sin(phi), we find the following:
+          C   -D    0
+        ( AD  AC   -B )
+          0   BD    A
+    */
+    for (uint8_t i = 0; i < 3; i++) {
+        temp[X] = (cos_phi * tri3->vs[i][X]) + (-sin_phi * tri3->vs[i][Y]);
+        temp[Y] = (cos_theta * sin_phi * tri3->vs[i][X]) + (cos_theta * cos_phi * tri3->vs[i][Y]) + (-sin_theta * tri3->vs[i][Z]);
+        temp[Z] = (sin_theta * sin_phi * tri3->vs[i][Y]) + (cos_theta * tri3->vs[i][Z]);
+
+        tri3->vs[i][X] = temp[X];
+        tri3->vs[i][Y] = temp[Y];
+        tri3->vs[i][Z] = temp[Z];
+    }
+}
 
 Triangle2D project(Triangle3D tri3)
 {
@@ -85,9 +133,9 @@ Triangle2D project(Triangle3D tri3)
         calculating normals in the interest of relative intensity.
     */
     for (uint8_t i = 0; i < 3; i++) {
-        tri3.vs[i][X] = ( (A * B * tri3.vs[i][X]) / (tri3.vs[i][Z]) );
-        tri3.vs[i][Y] = ( (B * tri3.vs[i][Y]) / (tri3.vs[i][Z]) );
-        tri3.vs[i][Z] = (C * tri3.vs[i][Z]) - (C * Z_NEAR);
+        tri3.vs[i][X] = ( (A__ * B__ * tri3.vs[i][X]) / (tri3.vs[i][Z]) );
+        tri3.vs[i][Y] = ( (B__ * tri3.vs[i][Y]) / (tri3.vs[i][Z]) );
+        tri3.vs[i][Z] = (C__ * tri3.vs[i][Z]) - (C__ * Z_NEAR);
 
         /*
             Finally, generate the 2D Triangle value. multiply it by FRAME_NUM_COLS to get it into

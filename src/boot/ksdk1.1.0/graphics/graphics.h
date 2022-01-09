@@ -41,13 +41,15 @@
     #define FRAME_NUM_ROWS 36
     #define FRAME_NUM_COLS 36
     #define GRAPHICS_OPTIMISED 0
+    #define ROTATION_RATE_THETA 0 /* Must be integer. */
+    #define ROTATION_RATE_PHI 2 /* Must be integer. */
 #endif
 
 /* Used to display wireframe triangles - useful for debugging. 1 for yes, 0 for no. */
 #define WIREFRAME 0
 
 /* Used to display a square outline to display the limits of the frame on the OLED display. 1 for yes, 0 for no. */
-#define OUTER_FRAME 0
+#define OUTER_FRAME 1
 
 /*
     Used to set the refresh rate of the display. See the 'FR Synchronisation' section of the SSD1331 manual.
@@ -117,8 +119,9 @@
 /*
     The amount by which to translate any vertices into the Z axis
     such that vertices are not rendered around (0, 0, 0).
+    See documentation for z_translate in projection.c for much more infomation.
 */
-#define Z_TRANSLATION 2.0
+#define Z_TRANSLATION 2.5
 
 /*
     Colour can be directly written as, in theory, shapes are rendered in the

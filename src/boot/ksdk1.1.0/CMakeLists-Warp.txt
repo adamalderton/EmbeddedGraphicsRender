@@ -95,6 +95,7 @@ ADD_EXECUTABLE(Warp
     "${ProjDirPath}/../../src/graphics.c"
     "${ProjDirPath}/../../src/draw_line.c"
     "${ProjDirPath}/../../src/draw_triangle.c"
+    "${ProjDirPath}/../../src/projection.c"
     "${ProjDirPath}/../../src/devBMX055.c"
     "${ProjDirPath}/../../src/devADXL362.c"
     "${ProjDirPath}/../../src/devIS25xP.c"
