@@ -34,7 +34,7 @@
 	(float) ( (((float) sine_lookup[(rot_rate * rot_num) % 255]) - 128.0) / 128.0 )
 
 #define COS_UINT8(rot_rate, rot_num) \
-	(float) ( (((float) sine_lookup[(64 - (rot_rate * rot_num)) % 255]) - 128.0) / 128.0 )
+	(float) ( (((float) sine_lookup[(uint8_t) (64 - (rot_rate * rot_num)) % 255]) - 128.0) / 128.0 )
 
 void z_translate(Triangle3D *tri3);
 void rotate(Triangle3D *tri3, uint8_t rotation_num);

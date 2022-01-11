@@ -86,7 +86,7 @@ void graphicsDemo(void)
 			for (uint8_t rotation_num = 0; rotation_num < 255; rotation_num++) {
 				/* Extract triangle values. */
 
-				tri3.colour = R;
+				tri3.colour = G;
 
 				tri3.vs[0][X] = cube[0][0][X];
 				tri3.vs[0][Y] = cube[0][0][Y];

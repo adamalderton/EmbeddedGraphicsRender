@@ -38,18 +38,18 @@
 #endif
 
 #if (SPINNING_MULTICOLOUR_CUBE_DEMO)
-    #define FRAME_NUM_ROWS 36
-    #define FRAME_NUM_COLS 36
+    #define FRAME_NUM_ROWS 38
+    #define FRAME_NUM_COLS 38
     #define GRAPHICS_OPTIMISED 0
-    #define ROTATION_RATE_THETA 0 /* Must be integer. */
-    #define ROTATION_RATE_PHI 2 /* Must be integer. */
+    #define ROTATION_RATE_THETA 1 /* Must be integer. */
+    #define ROTATION_RATE_PHI 5 /* Must be integer. */
 #endif
 
 /* Used to display wireframe triangles - useful for debugging. 1 for yes, 0 for no. */
 #define WIREFRAME 0
 
 /* Used to display a square outline to display the limits of the frame on the OLED display. 1 for yes, 0 for no. */
-#define OUTER_FRAME 1
+#define OUTER_FRAME 0
 
 /*
     Used to set the refresh rate of the display. See the 'FR Synchronisation' section of the SSD1331 manual.
