@@ -45,8 +45,8 @@
     #define NUM_TRIANGLES 12
     #define GRAPHICS_OPTIMISED 0
     #define PIXELS_PER_BYTE 2
-    #define ROTATION_RATE_THETA 2 /* Must be integer. */
-    #define ROTATION_RATE_PHI 5 /* Must be integer. */
+    #define ROTATION_RATE_THETA 3 /* Must be integer. */
+    #define ROTATION_RATE_PHI 7 /* Must be integer. */
 #endif
 
 /* Used to display wireframe triangles - useful for debugging. 1 for yes, 0 for no. */
