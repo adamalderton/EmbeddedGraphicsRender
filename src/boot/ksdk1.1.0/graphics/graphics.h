@@ -39,21 +39,21 @@
 #endif
 
 #if (SPINNING_MULTICOLOUR_CUBE_4_BIT_DEMO)
-    #define FRAME_NUM_ROWS 34
-    #define FRAME_NUM_COLS 34
-    #define L 0.6 /* Cube side length. Short variable name for later clarity. */
-    #define NUM_TRIANGLES 2
+    #define FRAME_NUM_ROWS 36
+    #define FRAME_NUM_COLS 36
+    #define L 0.55 /* Cube side length. Short variable name for later clarity. */
+    #define NUM_TRIANGLES 12
     #define GRAPHICS_OPTIMISED 0
     #define PIXELS_PER_BYTE 2
-    #define ROTATION_RATE_THETA 3 /* Must be integer. */
-    #define ROTATION_RATE_PHI 1 /* Must be integer. */
+    #define ROTATION_RATE_THETA 2 /* Must be integer. */
+    #define ROTATION_RATE_PHI 5 /* Must be integer. */
 #endif
 
 /* Used to display wireframe triangles - useful for debugging. 1 for yes, 0 for no. */
 #define WIREFRAME 0
 
 /* Used to display a square outline to display the limits of the frame on the OLED display. 1 for yes, 0 for no. */
-#define OUTER_FRAME 1
+#define OUTER_FRAME 0
 
 /*
     Used to set the refresh rate of the display. See the 'FR Synchronisation' section of the SSD1331 manual.
@@ -241,6 +241,9 @@ typedef struct {
         later to be divided.
     */
     float normal[3];
+
+    /* Magnitude value of normal vector. */
+    float normal_magnitude;
 } Triangle3D;
 
 /*

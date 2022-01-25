@@ -105,8 +105,7 @@ void find_triangle_normal(Triangle3D *tri3)
 {
     float line1[3];
     float line2[3];
-    float inv_sqrt_mod;
-
+    
     /* Extract two lines of the triangle. */
     line1[X] = tri3->vs[1][X] - tri3->vs[0][X];
     line1[Y] = tri3->vs[1][Y] - tri3->vs[0][Y];
@@ -120,14 +119,14 @@ void find_triangle_normal(Triangle3D *tri3)
     cross_product_float_3d(line1, line2, tri3->normal);
 
     /*
-        Normalise the normal for physical projection later.
+        Normalise the normal for projection later.
     
         \hat{x} = \frac{x}{|x|} = x \cdot (x \cdot x)^{-(1/2)}
     */
-    inv_sqrt_mod = fast_inv_sqrt(dot_product_float_3d(tri3->normal, tri3->normal));
-    tri3->normal[X] *= inv_sqrt_mod;
-    tri3->normal[Y] *= inv_sqrt_mod;
-    tri3->normal[Z] *= inv_sqrt_mod;
+    // inv_sqrt_mod = fast_inv_sqrt(dot_product_float_3d(tri3->normal, tri3->normal));
+    // tri3->normal[X] *= inv_sqrt_mod;
+    // tri3->normal[Y] *= inv_sqrt_mod;
+    // tri3->normal[Z] *= inv_sqrt_mod;
 }
 
 void z_translate(Triangle3D *tri3)
@@ -208,6 +207,8 @@ Triangle2D project(Triangle3D tri3)
 
             The 'off' threshold does not need to be considered as this function should not have even been called
             if this triangle was not visible.
+
+            Remember, at this point, the normal vector is *not* normalised, this allows for correct intensity scaling.
         */
         cos_theta = (tri3.normal[Z] * -1.0);
 

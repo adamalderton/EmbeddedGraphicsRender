@@ -8,7 +8,7 @@
 	#define GRAPHICS
 #endif
 
-#define Z_FAR 100.0
+#define Z_FAR 1000.0
 #define Z_NEAR 1.0
 
 /*

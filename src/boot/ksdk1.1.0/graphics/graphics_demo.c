@@ -31,6 +31,7 @@
 	/* Sides are scaled by 1/\sqrt{3} such that cube won't go out of bounds. */
 	const Triangle3DStorage cube[NUM_TRIANGLES] = 
 	{
+		/* Front face. */
 		{
 			B,					/* Colour. */
 			{					/* Vertices in -1.0 -> 1.0 space. */
@@ -63,7 +64,79 @@
 				{L, L, L},
 				{L, L, -L}
 			}
-		}
+		},
+
+		/* Top face. */
+		{
+			R,					/* Colour. */
+			{					/* Vertices in -1.0 -> 1.0 space. */
+				{-L, L, L},
+				{-L, L, -L},
+				{L, L, -L}
+			}
+		},
+		{
+			R,					/* Colour. */
+			{					/* Vertices in -1.0 -> 1.0 space. */
+				{L, L, L},
+				{-L, L, L},
+				{L, L, -L}
+			}
+		},
+
+		/* Back face. */
+		{
+			B,					/* Colour. */
+			{					/* Vertices in -1.0 -> 1.0 space. */
+				{L, L, L},
+				{L, -L, L},
+				{-L, L, L}
+			}
+		},
+		{
+			B,					/* Colour. */
+			{					/* Vertices in -1.0 -> 1.0 space. */
+				{-L, L, L},
+				{L, -L, L},
+				{-L, -L, L}
+			}
+		},
+
+		/* Left face. */
+		{
+			G,					/* Colour. */
+			{					/* Vertices in -1.0 -> 1.0 space. */
+				{-L, L, -L},
+				{-L, L, L},
+				{-L, -L, L}
+			}
+		},
+		{
+			G,					/* Colour. */
+			{					/* Vertices in -1.0 -> 1.0 space. */
+				{-L, L, -L},
+				{-L, -L, L},
+				{-L, -L, -L}
+			}
+		},
+	
+		/* Bottom face. */
+		{
+			R,					/* Colour. */
+			{					/* Vertices in -1.0 -> 1.0 space. */
+				{-L, -L, L},
+				{L, -L, L},
+				{-L, -L, -L}
+			}
+		},
+		{
+			R,					/* Colour. */
+			{					/* Vertices in -1.0 -> 1.0 space. */
+				{-L, -L, -L},
+				{L, -L, L},
+				{L, -L, -L}
+			}
+		},
 	};
 
 #endif
@@ -120,7 +193,7 @@ void graphicsDemo(void)
 		Triangle3D tri3;
 		Triangle2D tri2;
 
-		for (uint8_t j = 0; j < 5; j++) {
+		for (uint8_t j = 0; j < 20; j++) {
 			for (uint8_t rotation_num = 0; rotation_num < 255; rotation_num++) {
 				/* Extract triangle values. */
 
@@ -159,10 +232,10 @@ void graphicsDemo(void)
 
 						This assumes that the camera lies at (0.0, 0.0, 0.0) and is directionless.
 					*/
-					// if (dot_product_float_3d(tri3.normal, tri3.vs[0]) > 0.0) {
+					if (dot_product_float_3d(tri3.normal, tri3.vs[0]) > 0.0) {
 						tri2 = project(tri3);
 						drawTriangle(frame, tri2);
-					// }
+					}
 				}
 
 				writeFrame(frame);
