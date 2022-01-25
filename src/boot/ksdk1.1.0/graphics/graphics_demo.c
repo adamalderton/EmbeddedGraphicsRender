@@ -19,16 +19,6 @@
 		We can read and rotate the vertices one by one each time, rather than store all 
 		the rotated versions for every frame.
 	*/
-	// const float cube[1][3][3] = 
-	// {
-	// 	{
-	// 		{-0.5, -0.5, 0.0},
-	// 		{0.7, 0.1, 0.0},
-	// 		{-0.1, 0.8, 0.0}
-	// 	}
-	// };
-
-	/* Sides are scaled by 1/\sqrt{3} such that cube won't go out of bounds. */
 	const Triangle3DStorage cube[NUM_TRIANGLES] = 
 	{
 		/* Front face. */

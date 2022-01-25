@@ -207,11 +207,14 @@ void devSSD1331init(void)
 	writeCommand(kSSD1331CommandMASTERCURRENT);
 	writeCommand(0x06);
 	writeCommand(kSSD1331CommandCONTRASTA);
-	writeCommand(0x91);
+	//writeCommand(0x91);
+	writeCommand(0xFF);
 	writeCommand(kSSD1331CommandCONTRASTB);
-	writeCommand(0x50);
+	//writeCommand(0x50);
+	writeCommand(0xC8);
 	writeCommand(kSSD1331CommandCONTRASTC);
-	writeCommand(0x7D);
+	//writeCommand(0x7D);
+	writeCommand(0xFF);
 	writeCommand(kSSD1331CommandDISPLAYON);
 
 	/* End of standard initialisation sequence. */
