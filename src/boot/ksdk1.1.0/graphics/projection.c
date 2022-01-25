@@ -71,16 +71,65 @@ const uint8_t sine_lookup[256] =
 };
 
 /*
-    Translate a 3D triangle into the z axis such that is not centred around
-    (0, 0, 0). Rendering at z = 0 is undefined and rendering at z < 1 will quickly ensure 
-    that the triangle extends beyond the bound of the screen. Therefore,
-    being that rendered shapes are defined in the range (-1.0 -> 1.0) in every axis, is is recommended
-    that Z_TRANSLATION is no less than 2.0 such that points defined at z = -1.0 still render at least 
-    at z = 1.0.
-    Summary:
-        Z_TRANSLATION *MUST* be greater than 1.0 (not inclusive)
-        Z_TRANSLATION should be greater or equal to 2.0 to ensure vertices do not extend beyond the bounds of the screen.
+    This classic had to included! This is the famous inverse square root algorithm.
+    Enter 'fast inverse square root' into a search engine for more information.
+
+    The use of this algorithm does present portability issues but works on the hardware
+    this project is developed for. Consider introducing a new function for other hardware!
+    Specifically, this implementation is dependent on the IEEE standard for floating point
+    arithmetic.
 */
+static float fast_inv_sqrt(float num)
+{
+    int32_t i;
+    float x2;
+    float y;
+    const float threehalfs = 1.5;
+
+    x2 = num * 0.5;
+    y = num;
+	i  = * ( int32_t * ) &y;
+	i  = 0x5f3759df - ( i >> 1 );
+	y  = * ( float * ) &i;
+	y  = y * ( threehalfs - ( x2 * y * y ) ); /* Newton's method iteration. */
+
+	return y;
+}
+
+/*
+    Find the normal of a triangle defined in 3D.
+
+    This is an expensive function in both compute and memory.
+*/
+static void find_triangle_normal(Triangle3D *tri3)
+{
+    float line1[3];
+    float line2[3];
+    float inv_sqrt_mod;
+
+    /* Extract two lines of the triangle. */
+    line1[X] = tri3->vs[1][X] - tri3->vs[0][X];
+    line1[Y] = tri3->vs[1][Y] - tri3->vs[0][Y];
+    line1[Z] = tri3->vs[1][Z] - tri3->vs[0][Z];
+
+    line2[X] = tri3->vs[2][X] - tri3->vs[0][X];
+    line2[Y] = tri3->vs[2][Y] - tri3->vs[0][Y];
+    line2[Z] = tri3->vs[2][Z] - tri3->vs[0][Z];
+
+    /* Find line normal to both lines. */
+    cross_product_float_3d(line1, line2, tri3->normal);
+
+    /*
+        Normalise the normal for physical projection later.
+    
+        \hat{x} = \frac{x}{|x|} = x \cdot (x \cdot x)^{-(1/2)}
+    */
+    inv_sqrt_mod = fast_inv_sqrt(dot_product_float_3d(tri3->normal, tri3->normal));
+    tri3->normal[X] *= inv_sqrt_mod;
+    tri3->normal[Y] *= inv_sqrt_mod;
+    tri3->normal[Z] *= inv_sqrt_mod;
+}
+
 void z_translate(Triangle3D *tri3)
 {
     tri3->vs[0][Z] += Z_TRANSLATION;
@@ -94,11 +143,11 @@ void rotate(Triangle3D *tri3, uint8_t rotation_num)
     float temp[3];
 
     /* Extract sin(angle) and cos(angle) for both theta and phi. */
-    float sin_theta = SIN_UINT8(ROTATION_RATE_THETA, rotation_num);
-    float cos_theta = COS_UINT8(ROTATION_RATE_THETA, rotation_num);
+    float sin_theta = SIN_UINT8(ROTATION_RATE_THETA * rotation_num);
+    float cos_theta = COS_UINT8(ROTATION_RATE_THETA * rotation_num);
 
-    float sin_phi = SIN_UINT8(ROTATION_RATE_PHI, rotation_num);
-    float cos_phi = COS_UINT8(ROTATION_RATE_PHI, rotation_num);
+    float sin_phi = SIN_UINT8(ROTATION_RATE_PHI * rotation_num);
+    float cos_phi = COS_UINT8(ROTATION_RATE_PHI * rotation_num);
 
     /*
         Operate rotation matrix on vertices of tri3.
@@ -124,6 +173,8 @@ Triangle2D project(Triangle3D tri3)
 {
     Triangle2D tri2;
 
+    float cos_theta;
+
     tri2.colour = tri3.colour;
 
     /*
@@ -146,8 +197,35 @@ Triangle2D project(Triangle3D tri3)
         tri2.vs[i][Y] = (uint8_t) ( (tri3.vs[i][Y] * (float) FRAME_NUM_ROWS) + (FRAME_NUM_ROWS / 2) );
     }
 
-    /* Next, calculate the relative intensity. */
-    tri2.relative_intensity = MAX_RELATIVE_INTENSITY;
+    #if (BITS_PER_PIXEL == 4)
+
+        /*
+            Assume light is travelling isotropically at the camera in the Z axis.
+            This is not physical but gives a somewhat realistic view of the object.
+
+            Comes from definition of dot product. tri3.normal and (0.0, 0.0, -1.0) are already
+            normalised so we do not need to divide by their magnitudes.
+
+            The 'off' threshold does not need to be considered as this function should not have even been called
+            if this triangle was not visible.
+        */
+        cos_theta = (tri3.normal[Z] * -1.0);
+
+        if (cos_theta < RELATIVE_INTENSITY_1_THRESHOLD) {
+            tri2.relative_intensity = RELATIVE_INTENSITY_1;
+
+        } else if (cos_theta < RELATIVE_INTENSITY_2_THRESHOLD) {
+            tri2.relative_intensity = RELATIVE_INTENSITY_2;
+
+        } else {
+            tri2.relative_intensity = RELATIVE_INTENSITY_3;
+        }
+
+    #else
+
+        tri2.relative_intensity = MAX_RELATIVE_INTENSITY;
+
+    #endif
 
     return tri2;
 }

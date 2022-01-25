@@ -30,12 +30,27 @@
 
 #define C__ (Z_FAR / (Z_FAR - Z_NEAR))
 
-#define SIN_UINT8(rot_rate, rot_num) \
-	(float) ( (((float) sine_lookup[(rot_rate * rot_num) % 255]) - 128.0) / 128.0 )
+#define SIN_UINT8(x) \
+	(float) ( (((float) sine_lookup[x % 255]) - 128.0) / 128.0 )
 
-#define COS_UINT8(rot_rate, rot_num) \
-	(float) ( (((float) sine_lookup[(uint8_t) (64 - (rot_rate * rot_num)) % 255]) - 128.0) / 128.0 )
+#define COS_UINT8(x) \
+	(float) ( (((float) sine_lookup[(uint8_t) (64 - x) % 255]) - 128.0) / 128.0 )
 
+/*
+    Translate a 3D triangle into the z axis such that is not centred around
+    (0, 0, 0). Rendering at z = 0 is undefined and rendering at z < 1 will quickly ensure 
+    that the triangle extends beyond the bound of the screen. Therefore,
+    being that rendered shapes are defined in the range (-1.0 -> 1.0) in every axis, is is recommended
+    that Z_TRANSLATION is no less than 2.0 such that points defined at z = -1.0 still render at least 
+    at z = 1.0.
+    Summary:
+        Z_TRANSLATION *MUST* be greater than 1.0 (not inclusive)
+        Z_TRANSLATION should be greater or equal to 2.0 to ensure vertices do not extend beyond the bounds of the screen.
+*/
 void z_translate(Triangle3D *tri3);
+
+/* TODO: Docs. */
 void rotate(Triangle3D *tri3, uint8_t rotation_num);
+
+/* TODO: Docs. */
 Triangle2D project(Triangle3D);

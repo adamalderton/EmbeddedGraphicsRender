@@ -81,6 +81,7 @@ void graphicsDemo(void)
 	#if (SPINNING_MULTICOLOUR_CUBE_DEMO)
 
 		Triangle3D tri3;
+		Triangle2D tri2;
 
 		for (uint8_t j = 0; j < 5; j++) {
 			for (uint8_t rotation_num = 0; rotation_num < 255; rotation_num++) {
@@ -106,17 +107,23 @@ void graphicsDemo(void)
 					spherical coordinates. That is, phi is the azimuthal angle.
 
 					These angles are used to collect values from the uint8_t sine_lookup table.
-
-					We will define these angles in terms of the time elapsed. **IMPLEMENT LATER**.
 				*/
 				rotate(&tri3, rotation_num);
 
 				z_translate(&tri3);
 
-				drawTriangle(frame, project(tri3));
+				/*
+					If we can see the correct face of the triangle, project and draw it.
+					Can use any point on the triangle.
+
+					This assumes that the camera lies at (0.0, 0.0, 0.0) and is directionless.
+				*/
+				if (dot_product_float_3d(tri3.normal, tri3.vs[0]) > 0.0) {
+					tri2 = project(tri3);
+					drawTriangle(frame, tri2);
+				}
 
 				writeFrame(frame);
-
 				RESET_FRAME(frame);
 			}
 		}
