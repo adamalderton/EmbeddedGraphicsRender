@@ -174,7 +174,7 @@ void devSSD1331init(void)
 	OSA_TimeDelay(100);
 
 	/*
-		Initialization sequence, borrowed from https://github.com/adafruit/Adafruit-SSD1331-OLED-Driver-Library-for-Arduino
+		Initialization sequence, adapted from https://github.com/adafruit/Adafruit-SSD1331-OLED-Driver-Library-for-Arduino
 	 */
 	writeCommand(kSSD1331CommandDISPLAYOFF);
 	writeCommand(kSSD1331CommandSETREMAP);
@@ -207,13 +207,10 @@ void devSSD1331init(void)
 	writeCommand(kSSD1331CommandMASTERCURRENT);
 	writeCommand(0x06);
 	writeCommand(kSSD1331CommandCONTRASTA);
-	//writeCommand(0x91);
 	writeCommand(0xFF);
 	writeCommand(kSSD1331CommandCONTRASTB);
-	//writeCommand(0x50);
 	writeCommand(0xC8);
 	writeCommand(kSSD1331CommandCONTRASTC);
-	//writeCommand(0x7D);
 	writeCommand(0xFF);
 	writeCommand(kSSD1331CommandDISPLAYON);
 
@@ -250,13 +247,8 @@ void devSSD1331init(void)
 	#endif
 
 	/*
-		Next, we set the write area of the screen. This assumes that the constants defined below
-		are even, (warnings are provided if not).
+		Next, we set the write area of the screen. This assumes that the constants defined below are even.
 	*/
-
-	if ((FRAME_NUM_COLS % 2) || (FRAME_NUM_ROWS % 2)) {
-		warpPrint("\n\n\t***Warning: Frame dimensions are not even, they must be.***\n\n");
-	}
 
 	writeCommand(kSSD1331CommandSETCOLUMN);
 	writeCommand((SCREEN_MAX_COLS / 2) - (FRAME_NUM_COLS / 2)); /* Starting column. */

@@ -11,7 +11,7 @@
 	#define GRAPHICS
 #endif
 
-#if (SPINNING_MULTICOLOUR_CUBE_4_BIT_DEMO)
+#if (SPINNING_MULTICOLOUR_CUBE_DEMO)
 
 	/*
 		Cube constructed in terms of right hand rule triangles.
@@ -178,7 +178,7 @@ void graphicsDemo(void)
 
 	#endif
 
-	#if (SPINNING_MULTICOLOUR_CUBE_4_BIT_DEMO)
+	#if (SPINNING_MULTICOLOUR_CUBE_DEMO)
 
 		Triangle3D tri3;
 		Triangle2D tri2;

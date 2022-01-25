@@ -11,15 +11,11 @@
     They are given in increasing complexity as you go down the list.
 */
 
-/* Demonstrates correct drawing of triangles, pixel overwriting, and the speed of the program. */
-#define OVERLAPPING_2D_TRIANGLES_DEMO 0
-
-/*  */
-#define SPINNING_MULTICOLOUR_CUBE_4_BIT_DEMO 1
+#define SPINNING_MULTICOLOUR_CUBE_DEMO 1
 
 /*=================== END OF DEMO SELECTION ========================*/
 
-/*================== START OF CUSTOMISABLE QUANTITIES ==================*/
+/*================== START OF CONFIGURABLE QUANTITIES ==================*/
 
 /*
     Must ensure that ((FRAME_NUM_ROWS * FRAME_NUM_COLS) / PIXELS_PER_BYTE) fits into the stack size
@@ -28,25 +24,17 @@
 
     GRAPHICS_OPTIMISED determines whether unneccessary .data and .bss variables elsewhere in the Warp
     firmware are used in the interest of memory. 1 implies optimised, 0 implies not optimised.
-    Optimising things prevents printing as the print buffer is no longer used.
+    Optimisation prevents printing as the print buffer is no longer used.
 */
-#if (OVERLAPPING_2D_TRIANGLES_DEMO)
-    #define FRAME_NUM_ROWS 36
-    #define FRAME_NUM_COLS 36
-    #define PIXELS_PER_BYTE 2
-    #define GRAPHICS_OPTIMISED 0
-    #define OVERLAPPING_2D_TRIANGLES_DEMO_ITERATIONS 99 /* Such that final frame isn't black, but blue. */
-#endif
 
-#if (SPINNING_MULTICOLOUR_CUBE_4_BIT_DEMO)
+#if (SPINNING_MULTICOLOUR_CUBE_DEMO)
     #define FRAME_NUM_ROWS 36
     #define FRAME_NUM_COLS 36
     #define L 0.55 /* Cube side length. Short variable name for later clarity. */
     #define NUM_TRIANGLES 12
     #define GRAPHICS_OPTIMISED 0
-    #define PIXELS_PER_BYTE 2
     #define ROTATION_RATE_THETA 3 /* Must be integer. */
-    #define ROTATION_RATE_PHI 7 /* Must be integer. */
+    #define ROTATION_RATE_PHI 7   /* Must be integer. */
 #endif
 
 /* Used to display wireframe triangles - useful for debugging. 1 for yes, 0 for no. */
@@ -67,7 +55,7 @@
 */
 #define REFRESH_RATE_DIVISOR 0
 
-/*=================== END OF CUSTOMISABLE QUANTITIES ===================*/
+/*=================== END OF CONFIGURABLE QUANTITIES ===================*/
 
 #define SCREEN_MAX_COLS 96
 #define SCREEN_MAX_ROWS 64
@@ -96,72 +84,48 @@
 #define MAX_RELATIVE_INTENSITY_FLOAT 3.0 /* To prevent repeated casting. */
 
 /*
-    If 2 pixels are stored in a byte, each is granted 4 bits of storage.
+    2 pixels are stored in a byte, hence each is granted 4 bits of storage.
     2 bits per pixel are assigned to colour, hence the maximum 'colour' is b11 = 3.
     This means there are actually 4 colours (one being blank = off = black). The other two bits 
     are used to allow for different relative intensities. Similarly to colour, there are three options
     plus a fourth - 'off'.
-
-    If 4 pixels are stored in a byte, each is granted 2 bits of storage. Colour can be shown matching the 4 bit
-    case however the ability to modulate intensity is sacrificed.
-
-    The 4 bit (2 pixels per byte) variant is defaulted to.
 */
-#if (PIXELS_PER_BYTE == 4)
-    #define BITS_PER_PIXEL 2 /* sizeof(uint8_t) / PIXELS_PER_BYTE */
 
-    /* Number of colours available to be drawn. */
-    #define FRAME_NUM_COLOURS 3
+#define PIXELS_PER_BYTE 2
+#define BITS_PER_PIXEL 4 /* sizeof(uint8_t) / PIXELS_PER_BYTE */
 
-    /*
-        Used to extract colour and distance out of 4 bit pixel value.
+/* Number of colours available to be drawn. */
+#define FRAME_NUM_COLOURS 3
 
-        Colour is stored in the rightmost bytes hence the bitmask is 0011.
-        Distance is stored in the other two hence 1100.
-    */
-    #define COLOUR_BITMASK 3
-    #define RELATIVE_INTENSITY_BITMASK 15 /* (COLOUR_BITMASK << PIXELS_PER_BYTE) */
+/*
+    Used to extract colour and distance out of 4 bit pixel value.
 
-    /*
-        00001111, can be left shifted to write to other pixel in byte.
-    */
-    #define PIXEL_BITMASK 15
-#else
-    #define BITS_PER_PIXEL 4 /* sizeof(uint8_t) / PIXELS_PER_BYTE */
+    Colour is stored in the rightmost bytes hence the bitmask is 0011.
+    Distance is stored in the other two hence 1100.
+*/
+#define COLOUR_BITMASK 3
+#define RELATIVE_INTENSITY_BITMASK 15 /* (COLOUR_BITMASK << PIXELS_PER_BYTE) */
 
-    /* Number of colours available to be drawn. */
-    #define FRAME_NUM_COLOURS 3
+/*
+    00001111, can be left shifted to write to other pixel in byte.
+*/
+#define PIXEL_BITMASK 15
 
-    /*
-        Used to extract colour and distance out of 4 bit pixel value.
+/*
+    Tuneable thresholds at which to display certain pixel intensitities.
+    These are compared with cos(theta) values derived from the dot product of a triangle
+    and the light direction.
+*/
+#define RELATIVE_INTENSITY_0_THRESHOLD 0.0
+#define RELATIVE_INTENSITY_1_THRESHOLD 0.5
+#define RELATIVE_INTENSITY_2_THRESHOLD 0.8
+#define RELATIVE_INTENSITY_3_THRESHOLD 1.0
 
-        Colour is stored in the rightmost bytes hence the bitmask is 0011.
-        Distance is stored in the other two hence 1100.
-    */
-    #define COLOUR_BITMASK 3
-    #define RELATIVE_INTENSITY_BITMASK 15 /* (COLOUR_BITMASK << PIXELS_PER_BYTE) */
-
-    /*
-        00001111, can be left shifted to write to other pixel in byte.
-    */
-    #define PIXEL_BITMASK 15
-
-    /*
-        Tuneable thresholds at which to display certain pixel intensitities.
-        These are compared with cos(theta) values derived from the dot product of a triangle
-        and the light direction.
-    */
-    #define RELATIVE_INTENSITY_0_THRESHOLD 0.0
-    #define RELATIVE_INTENSITY_1_THRESHOLD 0.5
-    #define RELATIVE_INTENSITY_2_THRESHOLD 0.8
-    #define RELATIVE_INTENSITY_3_THRESHOLD 1.0
-
-    /* Relative intensitites to be shown on screen. */
-    #define RELATIVE_INTENSITY_0 0
-    #define RELATIVE_INTENSITY_1 1
-    #define RELATIVE_INTENSITY_2 2
-    #define RELATIVE_INTENSITY_3 MAX_RELATIVE_INTENSITY
-#endif
+/* Relative intensitites to be shown on screen. */
+#define RELATIVE_INTENSITY_0 0
+#define RELATIVE_INTENSITY_1 1
+#define RELATIVE_INTENSITY_2 2
+#define RELATIVE_INTENSITY_3 MAX_RELATIVE_INTENSITY
 
 
 /*
@@ -194,7 +158,7 @@
     dest[X] = src[X]; \
     dest[Y] = src[Y];
 
-/* MEMSET not used as to avoid incredibly large program with introduction of string.h. */
+/* MEMSET not used as to avoid introduction of string.h. */
 #define RESET_FRAME(frame) \
     for (uint8_t i = 0; i < FRAME_TRUE_ROWS; i++) { \
         for (uint8_t j = 0; j < FRAME_TRUE_COLS; j++) { \
@@ -203,9 +167,9 @@
     } \
 
 typedef enum {
-    X,
-    Y,
-    Z
+    X = 0,
+    Y = 1,
+    Z = 2
 } Dims;
 
 typedef enum {
@@ -227,7 +191,7 @@ typedef enum {
 */
 typedef struct {
     /* 
-        Can only be one of those defined in the Colours enum in graphics.h.
+        Can only be one of those defined in the Colours enum.
         That is, only 00 for black, 01 for red, 10 for green or 11 for blue.
         Must fit in 2 bits.
     */
@@ -236,14 +200,8 @@ typedef struct {
     /* Three three-dimensional vertices. */
     float vs[3][3];
 
-    /*
-        Integer operations are our friend. We will approximate floating point values with large integers
-        later to be divided.
-    */
+    /* Normal vector to the triangle surface. Defined by the right-hand rule. */
     float normal[3];
-
-    /* Magnitude value of normal vector. */
-    float normal_magnitude;
 } Triangle3D;
 
 /*
@@ -252,33 +210,15 @@ typedef struct {
     removed.
 */
 typedef struct {
-    /* 
-        Can only be one of those defined in the Colours enum in graphics.h.
-        That is, only 00 for black, 01 for red, 10 for green or 11 for blue.
-        Must fit in 2 bits.
-    */
     uint8_t colour;
-
-    /* Three three-dimensional vertices. */
     float vs[3][3];
-
 } Triangle3DStorage;
 
+/* The 2D version of the 3D triangle defined above. Has some extra attributes concerned with displaying. */
 typedef struct {
-    /* 
-        Can only be one of those defined in the Colours enum in graphics.h.
-        That is, only 00 for black, 01 for red, 10 for green or 11 for blue.
-        Must fit in 2 bits.
-    */
     uint8_t colour;
-
-    /*
-        Must fit in 2 bits, hence be either 0, 1, 2, or 3.
-    */
-    uint8_t relative_intensity;
-
-    /* Three two-dimensional vertices. */
-    uint8_t vs[3][2];
+    uint8_t relative_intensity; /* Must be 0, 1, 2, or 3. Must fit in 2 bits. */
+    uint8_t vs[3][2];           /* Three two-dimensional vertices. */
 } Triangle2D;
 
 /*
