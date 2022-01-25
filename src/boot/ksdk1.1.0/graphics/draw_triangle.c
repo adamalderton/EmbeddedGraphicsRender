@@ -98,7 +98,7 @@ static void drawFlatTopTriangle(uint8_t frame[FRAME_TRUE_ROWS][FRAME_TRUE_COLS],
     xB = tri.vs[2][X];
 
     /* Draw first (bottom) point. */
-    drawPixel(frame, tri.vs[2][X], y, tri.colour, MAX_RELATIVE_INTENSITY);
+    drawPixel(frame, tri.vs[2][X], y, tri.colour, tri.relative_intensity);
 
     /*
         Flat top triangle rasterisation loop.
@@ -169,7 +169,7 @@ static void drawFlatTopTriangle(uint8_t frame[FRAME_TRUE_ROWS][FRAME_TRUE_COLS],
         }
 
         /* Finally, draw the line at y = y between xA and xB. */
-        drawHorizontalLine(frame, y, xA, xB, tri.colour, MAX_RELATIVE_INTENSITY);
+        drawHorizontalLine(frame, y, xA, xB, tri.colour, tri.relative_intensity);
     }
 }
 
@@ -207,7 +207,7 @@ static void drawFlatBottomTriangle(uint8_t frame[FRAME_TRUE_ROWS][FRAME_TRUE_COL
     xB = tri.vs[2][X];
 
     /* Draw first (bottom) line. */
-    drawHorizontalLine(frame, y, xA, xB, tri.colour, MAX_RELATIVE_INTENSITY);
+    drawHorizontalLine(frame, y, xA, xB, tri.colour, tri.relative_intensity);
 
     /*
         Flat bottom triangle rasterisation loop.
@@ -278,22 +278,10 @@ static void drawFlatBottomTriangle(uint8_t frame[FRAME_TRUE_ROWS][FRAME_TRUE_COL
         }
 
         /* Finally, draw the line at y = y between xA and xB. */
-        drawHorizontalLine(frame, y, xA, xB, tri.colour, MAX_RELATIVE_INTENSITY);
+        drawHorizontalLine(frame, y, xA, xB, tri.colour, tri.relative_intensity);
     }
 }
 
-/*
-    Draws and fills triangles in one colour.
-
-    First the procedure splits the triangle into a flat top and flat bottom triangle.
-    These two-sub triangles are then filled separately.
-
-    The process of filling a flat sub-triangle consists of running Bresenham's algorithm in parallel
-    for two lines and drawing a horizontal line between them when the y coordinate is incremented.
-    Further documentation on Bresenham's line algorithm and its implementation here is given among
-    the drawLine function which was a precursor to the drawTriangle function. The drawLine function was
-    adapted from an implementation by Michael Abrash.
-*/
 void drawTriangle(uint8_t frame[FRAME_TRUE_ROWS][FRAME_TRUE_COLS], Triangle2D tri)
 {
     #if (WIREFRAME)

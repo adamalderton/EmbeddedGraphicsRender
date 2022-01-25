@@ -12,13 +12,10 @@
 */
 
 /* Demonstrates correct drawing of triangles, pixel overwriting, and the speed of the program. */
-#define OVERLAPPING_2D_TRIANGLES_DEMO 1
+#define OVERLAPPING_2D_TRIANGLES_DEMO 0
 
 /*  */
-#define SPINNING_MULTICOLOUR_CUBE_DEMO 0
-
-/*  */
-#define TRIANGULAR_TOWERS_DEMO 0
+#define SPINNING_MULTICOLOUR_CUBE_4_BIT_DEMO 1
 
 /*=================== END OF DEMO SELECTION ========================*/
 
@@ -36,20 +33,20 @@
 #if (OVERLAPPING_2D_TRIANGLES_DEMO)
     #define FRAME_NUM_ROWS 36
     #define FRAME_NUM_COLS 36
+    #define PIXELS_PER_BYTE 2
     #define GRAPHICS_OPTIMISED 0
     #define OVERLAPPING_2D_TRIANGLES_DEMO_ITERATIONS 99 /* Such that final frame isn't black, but blue. */
 #endif
 
-#if (SPINNING_MULTICOLOUR_CUBE_DEMO)
-    #define FRAME_NUM_ROWS 44
-    #define FRAME_NUM_COLS 44
-    #define GRAPHICS_OPTIMISED 1
-#endif
-
-#if (SPINNING_MULTICOLOUR_CUBE_DEMO)
-    #define FRAME_NUM_ROWS 44
-    #define FRAME_NUM_COLS 44
-    #define GRAPHICS_OPTIMISED 1
+#if (SPINNING_MULTICOLOUR_CUBE_4_BIT_DEMO)
+    #define FRAME_NUM_ROWS 36
+    #define FRAME_NUM_COLS 36
+    #define L 0.55 /* Cube side length. Short variable name for later clarity. */
+    #define NUM_TRIANGLES 12
+    #define GRAPHICS_OPTIMISED 0
+    #define PIXELS_PER_BYTE 2
+    #define ROTATION_RATE_THETA 3 /* Must be integer. */
+    #define ROTATION_RATE_PHI 7 /* Must be integer. */
 #endif
 
 /* Used to display wireframe triangles - useful for debugging. 1 for yes, 0 for no. */
@@ -99,29 +96,80 @@
 #define MAX_RELATIVE_INTENSITY_FLOAT 3.0 /* To prevent repeated casting. */
 
 /*
-    2 pixels are stored in a byte. Each is granted 4 bits of storage.
+    If 2 pixels are stored in a byte, each is granted 4 bits of storage.
     2 bits per pixel are assigned to colour, hence the maximum 'colour' is b11 = 3.
-    This means there are actually 4 colours (one being blank = off = black), however
-    FRAME_NUM_COLOURS is defined as three for more pragmatic iteration in other parts 
-    of the code.
+    This means there are actually 4 colours (one being blank = off = black). The other two bits 
+    are used to allow for different relative intensities. Similarly to colour, there are three options
+    plus a fourth - 'off'.
+
+    If 4 pixels are stored in a byte, each is granted 2 bits of storage. Colour can be shown matching the 4 bit
+    case however the ability to modulate intensity is sacrificed.
+
+    The 4 bit (2 pixels per byte) variant is defaulted to.
 */
-#define PIXELS_PER_BYTE 2
-#define FRAME_NUM_COLOURS 3
+#if (PIXELS_PER_BYTE == 4)
+    #define BITS_PER_PIXEL 2 /* sizeof(uint8_t) / PIXELS_PER_BYTE */
+
+    /* Number of colours available to be drawn. */
+    #define FRAME_NUM_COLOURS 3
+
+    /*
+        Used to extract colour and distance out of 4 bit pixel value.
+
+        Colour is stored in the rightmost bytes hence the bitmask is 0011.
+        Distance is stored in the other two hence 1100.
+    */
+    #define COLOUR_BITMASK 3
+    #define RELATIVE_INTENSITY_BITMASK 15 /* (COLOUR_BITMASK << PIXELS_PER_BYTE) */
+
+    /*
+        00001111, can be left shifted to write to other pixel in byte.
+    */
+    #define PIXEL_BITMASK 15
+#else
+    #define BITS_PER_PIXEL 4 /* sizeof(uint8_t) / PIXELS_PER_BYTE */
+
+    /* Number of colours available to be drawn. */
+    #define FRAME_NUM_COLOURS 3
+
+    /*
+        Used to extract colour and distance out of 4 bit pixel value.
+
+        Colour is stored in the rightmost bytes hence the bitmask is 0011.
+        Distance is stored in the other two hence 1100.
+    */
+    #define COLOUR_BITMASK 3
+    #define RELATIVE_INTENSITY_BITMASK 15 /* (COLOUR_BITMASK << PIXELS_PER_BYTE) */
+
+    /*
+        00001111, can be left shifted to write to other pixel in byte.
+    */
+    #define PIXEL_BITMASK 15
+
+    /*
+        Tuneable thresholds at which to display certain pixel intensitities.
+        These are compared with cos(theta) values derived from the dot product of a triangle
+        and the light direction.
+    */
+    #define RELATIVE_INTENSITY_0_THRESHOLD 0.0
+    #define RELATIVE_INTENSITY_1_THRESHOLD 0.5
+    #define RELATIVE_INTENSITY_2_THRESHOLD 0.8
+    #define RELATIVE_INTENSITY_3_THRESHOLD 1.0
+
+    /* Relative intensitites to be shown on screen. */
+    #define RELATIVE_INTENSITY_0 0
+    #define RELATIVE_INTENSITY_1 1
+    #define RELATIVE_INTENSITY_2 2
+    #define RELATIVE_INTENSITY_3 MAX_RELATIVE_INTENSITY
+#endif
+
 
 /*
-    Used to extract colour and distance out of 4 bit pixel value.
-
-    Colour is stored in the rightmost bytes hence the bitmask is 0011.
-    Distance is stored in the other two hence 1100.
+    The amount by which to translate any vertices into the Z axis
+    such that vertices are not rendered around (0, 0, 0).
+    See documentation for z_translate in projection.c for much more infomation.
 */
-#define COLOUR_BITMASK 3
-#define RELATIVE_INTENSITY_BITMASK 15 /* (COLOUR_BITMASK << PIXELS_PER_BYTE) */
-
-/*
-    00001111, can be left shifted to write to other pixel in byte.
-*/
-#define PIXEL_BITMASK 15
-#define BITS_PER_PIXEL 4 /* sizeof(uint8_t) / PIXELS_PER_BYTE */
+#define Z_TRANSLATION 2.5
 
 /*
     Colour can be directly written as, in theory, shapes are rendered in the
@@ -146,19 +194,13 @@
     dest[X] = src[X]; \
     dest[Y] = src[Y];
 
+/* MEMSET not used as to avoid incredibly large program with introduction of string.h. */
 #define RESET_FRAME(frame) \
     for (uint8_t i = 0; i < FRAME_TRUE_ROWS; i++) { \
         for (uint8_t j = 0; j < FRAME_TRUE_COLS; j++) { \
             frame[i][j] = 0; \
         } \
     } \
-
-
-	// for (uint8_t i = 0; i < FRAME_TRUE_ROWS; i++) { 
-	// 	for (uint8_t j = 0; j < FRAME_TRUE_COLS; j++){ 
-	// 		frame[i][j] = 0;
-	// 	} 
-	// }
 
 typedef enum {
     X,
@@ -173,6 +215,87 @@ typedef enum {
     B = 3   /* Blue, 11 in binary. */
 } Colours;
 
+/*
+    While a 'vertex' struct would have had its advantages,
+    a 2D array to represent the vertices was selected such that the
+    vertices can be iteratively accessed - this circumvents the need
+    for a lot of hardcoding for access.
+
+    As a reminder, due to memory constraints, pixels cannot be composite colours.
+    That is, shapes can only be red, green or blue. They can still be different shades of
+    those colours in the interest of representing distance, for example.
+*/
+typedef struct {
+    /* 
+        Can only be one of those defined in the Colours enum in graphics.h.
+        That is, only 00 for black, 01 for red, 10 for green or 11 for blue.
+        Must fit in 2 bits.
+    */
+    uint8_t colour;
+
+    /* Three three-dimensional vertices. */
+    float vs[3][3];
+
+    /*
+        Integer operations are our friend. We will approximate floating point values with large integers
+        later to be divided.
+    */
+    float normal[3];
+
+    /* Magnitude value of normal vector. */
+    float normal_magnitude;
+} Triangle3D;
+
+/*
+    A type to store the scene to be rendered. Used as the triangles' normals do
+    not need to be stored. It is simply the above but with the normal attribute
+    removed.
+*/
+typedef struct {
+    /* 
+        Can only be one of those defined in the Colours enum in graphics.h.
+        That is, only 00 for black, 01 for red, 10 for green or 11 for blue.
+        Must fit in 2 bits.
+    */
+    uint8_t colour;
+
+    /* Three three-dimensional vertices. */
+    float vs[3][3];
+
+} Triangle3DStorage;
+
+typedef struct {
+    /* 
+        Can only be one of those defined in the Colours enum in graphics.h.
+        That is, only 00 for black, 01 for red, 10 for green or 11 for blue.
+        Must fit in 2 bits.
+    */
+    uint8_t colour;
+
+    /*
+        Must fit in 2 bits, hence be either 0, 1, 2, or 3.
+    */
+    uint8_t relative_intensity;
+
+    /* Three two-dimensional vertices. */
+    uint8_t vs[3][2];
+} Triangle2D;
+
+/*
+    Defines the means to access the 'frame' array correctly.
+    
+    In C style indexing, the point (x = 0, y = 0) is at the top left of the frame.
+
+    With increasing x, the point of consideration travels DOWN VERTICALLY.
+    With increasing y, the point of consideration travels RIGHT HORIZONTALLY.
+
+    This can be somewhat confusing with the intuition that a cartesian coordinate system
+    would start in the bottom left such that x and y are only positive and increase horizontally
+    right and vertically up respectively.
+
+    Therefore, to convert from C array access to an inuitive coordinate system, the following macros
+    are implemented.
+ */
 void drawPixel(
     uint8_t frame[FRAME_TRUE_ROWS][FRAME_TRUE_COLS],
     uint8_t x,
@@ -181,5 +304,14 @@ void drawPixel(
     uint8_t relative_intensity
 );
 
-// uint8_t get_pixel_value_xy(uint8_t frame[FRAME_TRUE_ROWS][FRAME_TRUE_COLS], uint8_t x, uint8_t y);
+/* Gets the 4 bit pixel value by referencing the frame buffer in the x-y basis. */
+uint8_t get_pixel_value_xy(uint8_t frame[FRAME_TRUE_ROWS][FRAME_TRUE_COLS], uint8_t x, uint8_t y);
+
+/* Gets the 4 bit pixel value by referencing the frame buffer in the row-column basis. */
 uint8_t get_pixel_value_rowcol(uint8_t frame[FRAME_TRUE_ROWS][FRAME_TRUE_COLS], uint8_t row, uint8_t col);
+
+/* Returns simple dot product between two floating point vectors. */
+float dot_product_float_3d(float vec1[3], float vec2[3]);
+
+/* Calculates simple cross product between two floating point vectors, stores answer in result. */
+void cross_product_float_3d(float vec1[3], float vec2[3], float result[3]);
