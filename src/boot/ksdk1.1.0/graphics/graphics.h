@@ -39,8 +39,8 @@
 #endif
 
 #if (SPINNING_MULTICOLOUR_CUBE_DEMO)
-    #define FRAME_NUM_ROWS 38
-    #define FRAME_NUM_COLS 38
+    #define FRAME_NUM_ROWS 30
+    #define FRAME_NUM_COLS 30
     #define GRAPHICS_OPTIMISED 0
     #define PIXELS_PER_BYTE 2
     #define ROTATION_RATE_THETA 1 /* Must be integer. */
@@ -154,10 +154,10 @@
     #define RELATIVE_INTENSITY_2_THRESHOLD 0.8
     #define RELATIVE_INTENSITY_3_THRESHOLD 1.0
 
-    /* Tuneable relative intensitites to be shown on screen. */
+    /* Relative intensitites to be shown on screen. */
     #define RELATIVE_INTENSITY_0 0
-    #define RELATIVE_INTENSITY_1 10
-    #define RELATIVE_INTENSITY_2 20
+    #define RELATIVE_INTENSITY_1 1
+    #define RELATIVE_INTENSITY_2 2
     #define RELATIVE_INTENSITY_3 MAX_RELATIVE_INTENSITY
 #endif
 

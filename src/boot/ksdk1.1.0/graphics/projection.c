@@ -101,7 +101,7 @@ static float fast_inv_sqrt(float num)
 
     This is an expensive function in both compute and memory.
 */
-static void find_triangle_normal(Triangle3D *tri3)
+void find_triangle_normal(Triangle3D *tri3)
 {
     float line1[3];
     float line2[3];
@@ -210,6 +210,11 @@ Triangle2D project(Triangle3D tri3)
             if this triangle was not visible.
         */
         cos_theta = (tri3.normal[Z] * -1.0);
+
+        /* Custom implementation of fabs(cos_theta). */
+        if (cos_theta < 0.0) {
+            cos_theta *= -1.0;
+        }
 
         if (cos_theta < RELATIVE_INTENSITY_1_THRESHOLD) {
             tri2.relative_intensity = RELATIVE_INTENSITY_1;

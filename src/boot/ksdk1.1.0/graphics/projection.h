@@ -54,3 +54,10 @@ void rotate(Triangle3D *tri3, uint8_t rotation_num);
 
 /* TODO: Docs. */
 Triangle2D project(Triangle3D);
+
+/*
+    Find the normal of a triangle defined in 3D.
+
+    This is an expensive function in both compute and memory.
+*/
+void find_triangle_normal(Triangle3D *tri3);

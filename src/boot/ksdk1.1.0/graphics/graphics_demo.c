@@ -112,6 +112,8 @@ void graphicsDemo(void)
 
 				z_translate(&tri3);
 
+				find_triangle_normal(&tri3);
+
 				/*
 					If we can see the correct face of the triangle, project and draw it.
 					Can use any point on the triangle.
@@ -120,6 +122,7 @@ void graphicsDemo(void)
 				*/
 				if (dot_product_float_3d(tri3.normal, tri3.vs[0]) > 0.0) {
 					tri2 = project(tri3);
+					warpPrint("REL_INTENSITY: %d\n", tri2.relative_intensity);
 					drawTriangle(frame, tri2);
 				}
 
