@@ -8,7 +8,6 @@
 #include "warp.h"
 #include "devSSD1331.h"
 
-volatile uint8_t	in_buffer[2];
 volatile uint8_t	payload_bytes[2];
 
 /*
@@ -46,7 +45,7 @@ static int writeCommand(uint8_t commandByte)
 					0,			/* Master instance. */
 					NULL		/* spi_master_user_config_t */,
 					(const uint8_t * restrict) &payload_bytes[0],
-					(uint8_t * restrict) &in_buffer[0],
+					NULL,
 					1			/* Transfer size */,
 					1000		/* Timeout in microseconds (unlike I2C which is ms) */);
 
@@ -126,7 +125,7 @@ void writeFrame(uint8_t frame[FRAME_TRUE_ROWS][FRAME_TRUE_COLS])
 				0,			/* Master instance. */
 				NULL		/* spi_master_user_config_t */,
 				(const uint8_t * restrict) &payload_bytes[0],
-				(uint8_t * restrict) &in_buffer[0],
+				NULL,
 				2			/* Transfer size in bytes */,
 				1000		/* Timeout in microseconds (unlike I2C which is ms) */);
 
