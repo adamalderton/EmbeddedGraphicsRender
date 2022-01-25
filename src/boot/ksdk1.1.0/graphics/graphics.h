@@ -15,7 +15,7 @@
 #define OVERLAPPING_2D_TRIANGLES_DEMO 0
 
 /*  */
-#define SPINNING_MULTICOLOUR_CUBE_DEMO 1
+#define SPINNING_MULTICOLOUR_CUBE_4_BIT_DEMO 1
 
 /*=================== END OF DEMO SELECTION ========================*/
 
@@ -38,20 +38,22 @@
     #define OVERLAPPING_2D_TRIANGLES_DEMO_ITERATIONS 99 /* Such that final frame isn't black, but blue. */
 #endif
 
-#if (SPINNING_MULTICOLOUR_CUBE_DEMO)
-    #define FRAME_NUM_ROWS 30
-    #define FRAME_NUM_COLS 30
+#if (SPINNING_MULTICOLOUR_CUBE_4_BIT_DEMO)
+    #define FRAME_NUM_ROWS 34
+    #define FRAME_NUM_COLS 34
+    #define L 0.6 /* Cube side length. Short variable name for later clarity. */
+    #define NUM_TRIANGLES 2
     #define GRAPHICS_OPTIMISED 0
     #define PIXELS_PER_BYTE 2
-    #define ROTATION_RATE_THETA 1 /* Must be integer. */
-    #define ROTATION_RATE_PHI 5 /* Must be integer. */
+    #define ROTATION_RATE_THETA 3 /* Must be integer. */
+    #define ROTATION_RATE_PHI 1 /* Must be integer. */
 #endif
 
 /* Used to display wireframe triangles - useful for debugging. 1 for yes, 0 for no. */
 #define WIREFRAME 0
 
 /* Used to display a square outline to display the limits of the frame on the OLED display. 1 for yes, 0 for no. */
-#define OUTER_FRAME 0
+#define OUTER_FRAME 1
 
 /*
     Used to set the refresh rate of the display. See the 'FR Synchronisation' section of the SSD1331 manual.
@@ -240,6 +242,24 @@ typedef struct {
     */
     float normal[3];
 } Triangle3D;
+
+/*
+    A type to store the scene to be rendered. Used as the triangles' normals do
+    not need to be stored. It is simply the above but with the normal attribute
+    removed.
+*/
+typedef struct {
+    /* 
+        Can only be one of those defined in the Colours enum in graphics.h.
+        That is, only 00 for black, 01 for red, 10 for green or 11 for blue.
+        Must fit in 2 bits.
+    */
+    uint8_t colour;
+
+    /* Three three-dimensional vertices. */
+    float vs[3][3];
+
+} Triangle3DStorage;
 
 typedef struct {
     /* 

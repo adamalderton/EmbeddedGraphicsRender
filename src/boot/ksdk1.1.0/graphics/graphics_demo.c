@@ -11,8 +11,7 @@
 	#define GRAPHICS
 #endif
 
-#if (SPINNING_MULTICOLOUR_CUBE_DEMO)
-
+#if (SPINNING_MULTICOLOUR_CUBE_4_BIT_DEMO)
 
 	/*
 		Cube constructed in terms of right hand rule triangles.
@@ -20,12 +19,50 @@
 		We can read and rotate the vertices one by one each time, rather than store all 
 		the rotated versions for every frame.
 	*/
-	const float cube[1][3][3] = 
+	// const float cube[1][3][3] = 
+	// {
+	// 	{
+	// 		{-0.5, -0.5, 0.0},
+	// 		{0.7, 0.1, 0.0},
+	// 		{-0.1, 0.8, 0.0}
+	// 	}
+	// };
+
+	/* Sides are scaled by 1/\sqrt{3} such that cube won't go out of bounds. */
+	const Triangle3DStorage cube[NUM_TRIANGLES] = 
 	{
 		{
-			{-0.5, -0.5, 0.0},
-			{0.7, 0.1, 0.0},
-			{-0.1, 0.8, 0.0}
+			B,					/* Colour. */
+			{					/* Vertices in -1.0 -> 1.0 space. */
+				{-L, -L, -L},
+				{L, -L, -L},
+				{-L, L, -L}
+			}
+		},
+		{
+			B,					/* Colour. */
+			{					/* Vertices in -1.0 -> 1.0 space. */
+				{-L, L, -L},
+				{L, -L, -L},
+				{L, L, -L}
+			}
+		},
+		/* Right-side face. */
+		{
+			G,					/* Colour. */
+			{					/* Vertices in -1.0 -> 1.0 space. */
+				{L, -L, -L},
+				{L, -L, L},
+				{L, L, -L}
+			}
+		},
+		{
+			G,					/* Colour. */
+			{					/* Vertices in -1.0 -> 1.0 space. */
+				{L, -L, L},
+				{L, L, L},
+				{L, L, -L}
+			}
 		}
 	};
 
@@ -78,7 +115,7 @@ void graphicsDemo(void)
 
 	#endif
 
-	#if (SPINNING_MULTICOLOUR_CUBE_DEMO)
+	#if (SPINNING_MULTICOLOUR_CUBE_4_BIT_DEMO)
 
 		Triangle3D tri3;
 		Triangle2D tri2;
@@ -87,43 +124,45 @@ void graphicsDemo(void)
 			for (uint8_t rotation_num = 0; rotation_num < 255; rotation_num++) {
 				/* Extract triangle values. */
 
-				tri3.colour = G;
+				for (uint8_t tri_num = 0; tri_num < NUM_TRIANGLES; tri_num++) {
 
-				tri3.vs[0][X] = cube[0][0][X];
-				tri3.vs[0][Y] = cube[0][0][Y];
-				tri3.vs[0][Z] = cube[0][0][Z];
+					tri3.colour = cube[tri_num].colour;
 
-				tri3.vs[1][X] = cube[0][1][X];
-				tri3.vs[1][Y] = cube[0][1][Y];
-				tri3.vs[1][Z] = cube[0][1][Z];
+					tri3.vs[0][X] = cube[tri_num].vs[0][X];
+					tri3.vs[0][Y] = cube[tri_num].vs[0][Y];
+					tri3.vs[0][Z] = cube[tri_num].vs[0][Z];
 
-				tri3.vs[2][X] = cube[0][2][X];
-				tri3.vs[2][Y] = cube[0][2][Y];
-				tri3.vs[2][Z] = cube[0][2][Z];
+					tri3.vs[1][X] = cube[tri_num].vs[1][X];
+					tri3.vs[1][Y] = cube[tri_num].vs[1][Y];
+					tri3.vs[1][Z] = cube[tri_num].vs[1][Z];
 
-				/*
-					With the triangle extracted, we now rotate it a certain amount for the purposes of the demo.
-					To do that, we need to define the two angles of rotation theta and phi, both analagous to their use in
-					spherical coordinates. That is, phi is the azimuthal angle.
+					tri3.vs[2][X] = cube[tri_num].vs[2][X];
+					tri3.vs[2][Y] = cube[tri_num].vs[2][Y];
+					tri3.vs[2][Z] = cube[tri_num].vs[2][Z];
 
-					These angles are used to collect values from the uint8_t sine_lookup table.
-				*/
-				rotate(&tri3, rotation_num);
+					/*
+						With the triangle extracted, we now rotate it a certain amount for the purposes of the demo.
+						To do that, we need to define the two angles of rotation theta and phi, both analagous to their use in
+						spherical coordinates. That is, phi is the azimuthal angle.
 
-				z_translate(&tri3);
+						These angles are used to collect values from the uint8_t sine_lookup table.
+					*/
+					rotate(&tri3, rotation_num);
 
-				find_triangle_normal(&tri3);
+					z_translate(&tri3);
 
-				/*
-					If we can see the correct face of the triangle, project and draw it.
-					Can use any point on the triangle.
+					find_triangle_normal(&tri3);
 
-					This assumes that the camera lies at (0.0, 0.0, 0.0) and is directionless.
-				*/
-				if (dot_product_float_3d(tri3.normal, tri3.vs[0]) > 0.0) {
-					tri2 = project(tri3);
-					warpPrint("REL_INTENSITY: %d\n", tri2.relative_intensity);
-					drawTriangle(frame, tri2);
+					/*
+						If we can see the correct face of the triangle, project and draw it.
+						Can use any point on the triangle.
+
+						This assumes that the camera lies at (0.0, 0.0, 0.0) and is directionless.
+					*/
+					// if (dot_product_float_3d(tri3.normal, tri3.vs[0]) > 0.0) {
+						tri2 = project(tri3);
+						drawTriangle(frame, tri2);
+					// }
 				}
 
 				writeFrame(frame);

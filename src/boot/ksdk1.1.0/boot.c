@@ -2032,7 +2032,6 @@ main(void)
 		graphicsDemo();
 
 		warpPrint("Graphics demo complete.\n");
-		warpPrint("MCU may now be externally halted.\n");
 
 	#else
 
