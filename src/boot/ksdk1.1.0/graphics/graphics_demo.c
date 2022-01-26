@@ -183,10 +183,13 @@ void graphicsDemo(void)
 		Triangle3D tri3;
 		Triangle2D tri2;
 
-		for (uint8_t j = 0; j < 20; j++) {
-			for (uint8_t rotation_num = 0; rotation_num < 255; rotation_num++) {
-				/* Extract triangle values. */
+		uint32_t start_milliseconds = OSA_TimeGetMsec();
+		uint32_t end_milliseconds;
 
+		for (uint8_t j = 0; j < NUM_ROTATIONS; j++) {
+			for (uint8_t rotation_num = 0; rotation_num < 10; rotation_num++) {
+				
+				/* Extract triangle values. */
 				for (uint8_t tri_num = 0; tri_num < NUM_TRIANGLES; tri_num++) {
 
 					tri3.colour = cube[tri_num].colour;
@@ -223,16 +226,21 @@ void graphicsDemo(void)
 						This assumes that the camera lies at (0.0, 0.0, 0.0) and is directionless.
 					*/
 					if (dot_product_float_3d(tri3.normal, tri3.vs[0]) > 0.0) {
-						tri2 = project(tri3);
+						project(tri3, &tri2);
 						drawTriangle(frame, tri2);
 					}
 				}
-
+				
 				writeFrame(frame);
+
 				RESET_FRAME(frame);
 			}
 		}
-		
+
+		end_milliseconds = OSA_TimeGetMsec();
+
+		/* Milliseconds division can be truncated safely. */
+		warpPrint("Average time per frame for %d frames: %dms.\n", NUM_ROTATIONS * 255, (end_milliseconds - start_milliseconds) / (NUM_ROTATIONS * 255));
 
 	#endif
 

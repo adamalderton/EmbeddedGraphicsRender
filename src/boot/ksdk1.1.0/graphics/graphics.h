@@ -30,11 +30,12 @@
 #if (SPINNING_MULTICOLOUR_CUBE_DEMO)
     #define FRAME_NUM_ROWS 36
     #define FRAME_NUM_COLS 36
-    #define L 0.55 /* Cube side length. Short variable name for later clarity. */
+    #define L 0.56 /* Cube side length. Short variable name for later clarity. */
     #define NUM_TRIANGLES 12
     #define GRAPHICS_OPTIMISED 0
     #define ROTATION_RATE_THETA 3 /* Must be integer. */
     #define ROTATION_RATE_PHI 7   /* Must be integer. */
+    #define NUM_ROTATIONS 1
 #endif
 
 /* Used to display wireframe triangles - useful for debugging. 1 for yes, 0 for no. */

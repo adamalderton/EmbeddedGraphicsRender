@@ -127,13 +127,11 @@ void rotate(Triangle3D *tri3, uint8_t rotation_num)
     }
 }
 
-Triangle2D project(Triangle3D tri3)
+void project(Triangle3D tri3, Triangle2D *tri2)
 {
-    Triangle2D tri2;
-
     float cos_theta;
 
-    tri2.colour = tri3.colour;
+    tri2->colour = tri3.colour;
 
     /*
         Project the coordinates using a sparse-matrix multiplication of the
@@ -144,15 +142,14 @@ Triangle2D project(Triangle3D tri3)
     for (uint8_t i = 0; i < 3; i++) {
         tri3.vs[i][X] = ( (A__ * B__ * tri3.vs[i][X]) / (tri3.vs[i][Z]) );
         tri3.vs[i][Y] = ( (B__ * tri3.vs[i][Y]) / (tri3.vs[i][Z]) );
-        tri3.vs[i][Z] = (C__ * tri3.vs[i][Z]) - (C__ * Z_NEAR);
 
         /*
             Finally, generate the 2D Triangle value. multiply it by FRAME_NUM_COLS to get it into
             pixel space, then translate such that 0,0 is no longer in the centre but the bottom left.
-            Finally cast to uint8_t. Truncation is okay as its consistent.
+            Finally cast to uint8_t with rounding.
         */
-        tri2.vs[i][X] = (uint8_t) ( (tri3.vs[i][X] * (float) FRAME_NUM_COLS) + (FRAME_NUM_COLS / 2) );
-        tri2.vs[i][Y] = (uint8_t) ( (tri3.vs[i][Y] * (float) FRAME_NUM_ROWS) + (FRAME_NUM_ROWS / 2) );
+        tri2->vs[i][X] = (uint8_t) ( (tri3.vs[i][X] * (float) FRAME_NUM_COLS) + (float) (FRAME_NUM_COLS / 2) + 0.5);
+        tri2->vs[i][Y] = (uint8_t) ( (tri3.vs[i][Y] * (float) FRAME_NUM_ROWS) + (float) (FRAME_NUM_ROWS / 2) + 0.5);
     }
 
     /*
@@ -175,14 +172,12 @@ Triangle2D project(Triangle3D tri3)
     }
 
     if (cos_theta < RELATIVE_INTENSITY_1_THRESHOLD) {
-        tri2.relative_intensity = RELATIVE_INTENSITY_1;
+        tri2->relative_intensity = RELATIVE_INTENSITY_1;
 
     } else if (cos_theta < RELATIVE_INTENSITY_2_THRESHOLD) {
-        tri2.relative_intensity = RELATIVE_INTENSITY_2;
+        tri2->relative_intensity = RELATIVE_INTENSITY_2;
 
     } else {
-        tri2.relative_intensity = RELATIVE_INTENSITY_3;
+        tri2->relative_intensity = RELATIVE_INTENSITY_3;
     }
-
-    return tri2;
 }
