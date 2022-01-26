@@ -11,6 +11,30 @@
 	#define GRAPHICS
 #endif
 
+#if (SPINNING_SQUARE_DEMO)
+
+	const Triangle3DStorage square[NUM_TRIANGLES] = 
+	{
+		/* Front face. */
+		{
+			B,					/* Colour. */
+			{					/* Vertices in -1.0 -> 1.0 space. */
+				{-L, -L, -L},
+				{L, -L, -L},
+				{-L, L, -L}
+			}
+		},
+		{
+			B,					/* Colour. */
+			{					/* Vertices in -1.0 -> 1.0 space. */
+				{-L, L, -L},
+				{L, -L, -L},
+				{L, L, -L}
+			}
+		}
+	};
+#endif
+
 #if (SPINNING_MULTICOLOUR_CUBE_DEMO)
 
 	/*
@@ -137,48 +161,10 @@ void graphicsDemo(void)
 	uint8_t frame[FRAME_TRUE_ROWS][FRAME_TRUE_COLS];
 	RESET_FRAME(frame);
 
+	/* Initialise screen. */
 	devSSD1331init();
 
-	#if (OVERLAPPING_2D_TRIANGLES_DEMO)
-
-		warpPrint("Beginning overlapping triangles demo...\n");
-
-		uint16_t iterations;
-		uint32_t start_milliseconds = OSA_TimeGetMsec();
-		uint32_t milliseconds;
-
-		Triangle2D tri;
-
-		for (uint8_t n = 0; n < OVERLAPPING_2D_TRIANGLES_DEMO_ITERATIONS; n++) {
-			RESET_FRAME(frame);
-
-			tri.colour = (n % 4) + 1;
-			tri.relative_intensity = 1;
-
-			tri.vs[0][X] = 4; tri.vs[0][Y] = 0;
-			tri.vs[1][X] = 35; tri.vs[1][Y] = 27;
-			tri.vs[2][X] = 1; tri.vs[2][Y] = 35;
-
-			drawTriangle(frame, tri);
-
-			tri.colour = G;
-			tri.relative_intensity = 3;
-			tri.vs[0][X] = 20; tri.vs[0][Y] = 0;
-			tri.vs[1][X] = 35; tri.vs[1][Y] = 16;
-			tri.vs[2][X] = 26; tri.vs[2][Y] = 35;
-
-			drawTriangle(frame, tri);
-
-			writeFrame(frame);
-		}
-
-		milliseconds = OSA_TimeGetMsec();
-
-		warpPrint("Milliseconds per frame: %d\n", (milliseconds - start_milliseconds) / OVERLAPPING_2D_TRIANGLES_DEMO_ITERATIONS);
-
-	#endif
-
-	#if (SPINNING_MULTICOLOUR_CUBE_DEMO)
+	#if (SPINNING_SQUARE_DEMO)
 
 		Triangle3D tri3;
 		Triangle2D tri2;
@@ -187,9 +173,62 @@ void graphicsDemo(void)
 		uint32_t end_milliseconds;
 
 		for (uint8_t j = 0; j < NUM_ROTATIONS; j++) {
-			for (uint8_t rotation_num = 0; rotation_num < 10; rotation_num++) {
-				
-				/* Extract triangle values. */
+			for (uint8_t rotation_num = 0; rotation_num < 255; rotation_num++) {
+				for (uint8_t tri_num = 0; tri_num < NUM_TRIANGLES; tri_num++) {
+
+					tri3.colour = square[tri_num].colour;
+
+					tri3.vs[0][X] = square[tri_num].vs[0][X];
+					tri3.vs[0][Y] = square[tri_num].vs[0][Y];
+					tri3.vs[0][Z] = square[tri_num].vs[0][Z];
+
+					tri3.vs[1][X] = square[tri_num].vs[1][X];
+					tri3.vs[1][Y] = square[tri_num].vs[1][Y];
+					tri3.vs[1][Z] = square[tri_num].vs[1][Z];
+
+					tri3.vs[2][X] = square[tri_num].vs[2][X];
+					tri3.vs[2][Y] = square[tri_num].vs[2][Y];
+					tri3.vs[2][Z] = square[tri_num].vs[2][Z];
+
+					/*
+						With the triangle extracted, we now rotate it a certain amount for the purposes of the demo.
+						To do that, we need to define the two angles of rotation theta and phi, both analagous to their use in
+						spherical coordinates. That is, phi is the azimuthal angle.
+
+						These angles are used to collect values from the uint8_t sine_lookup table.
+					*/
+					rotate(&tri3, rotation_num);
+
+					z_translate(&tri3);
+
+					find_triangle_normal(&tri3);
+
+					/* In this demo, we can see both sides of the square. */
+					project(tri3, &tri2);
+					drawTriangle(frame, tri2);
+				}
+
+				writeFrame(frame);
+
+				RESET_FRAME(frame);
+			}
+		}
+
+		end_milliseconds = OSA_TimeGetMsec();
+
+		/* Milliseconds division can be truncated safely. */
+		warpPrint("Average time per frame for %d frames: %dms.\n", NUM_ROTATIONS * 255, (end_milliseconds - start_milliseconds) / (NUM_ROTATIONS * 255));
+
+	#elif (SPINNING_MULTICOLOUR_CUBE_DEMO)
+
+		Triangle3D tri3;
+		Triangle2D tri2;
+
+		uint32_t start_milliseconds = OSA_TimeGetMsec();
+		uint32_t end_milliseconds;
+
+		for (uint8_t j = 0; j < NUM_ROTATIONS; j++) {
+			for (uint8_t rotation_num = 0; rotation_num < 255; rotation_num++) {
 				for (uint8_t tri_num = 0; tri_num < NUM_TRIANGLES; tri_num++) {
 
 					tri3.colour = cube[tri_num].colour;
@@ -230,7 +269,7 @@ void graphicsDemo(void)
 						drawTriangle(frame, tri2);
 					}
 				}
-				
+
 				writeFrame(frame);
 
 				RESET_FRAME(frame);
@@ -241,6 +280,58 @@ void graphicsDemo(void)
 
 		/* Milliseconds division can be truncated safely. */
 		warpPrint("Average time per frame for %d frames: %dms.\n", NUM_ROTATIONS * 255, (end_milliseconds - start_milliseconds) / (NUM_ROTATIONS * 255));
+
+
+	#elif (TRIANGLES_VS_FRAMERATE_DEMO)
+
+		Triangle3D tri3;
+		Triangle2D tri2;
+
+		uint32_t start_milliseconds = OSA_TimeGetMsec();
+		uint32_t end_milliseconds;
+
+		for (uint16_t num_tris = START_TRIANGLES; num_tris <= END_TRIANGLES; num_tris += STEP_TRIANGLES) {
+			for (uint16_t frame_num = 0; frame_num < FRAMES_PER_STEP; frame_num++) {
+				
+				for (uint16_t tri_num = 0; tri_num < num_tris; tri_num++) {
+					/* Vary colour so something can be seen on screen. */
+					tri3.colour = (uint8_t) (frame_num % 3) + 1;
+
+					/* Re-populate tri3 each time to mimic more realistic rendering demo. */
+					tri3.vs[0][X] = -0.5;
+					tri3.vs[0][Y] = -0.5;
+					tri3.vs[0][Z] = -0.5;
+
+					tri3.vs[1][X] = 0.5;
+					tri3.vs[1][Y] = -0.5;
+					tri3.vs[1][Z] = -0.5;
+
+					tri3.vs[2][X] = -0.5;
+					tri3.vs[2][Y] = 0.5;
+					tri3.vs[2][Z] = -0.5;
+
+					/* The following function calls won't really do much but we need to take into account their processing. */
+					// rotate(&tri3, 0);
+					
+					z_translate(&tri3);
+
+					find_triangle_normal(&tri3);
+
+					project(tri3, &tri2);
+					drawTriangle(frame, tri2);
+				}
+			
+				writeFrame(frame);
+				RESET_FRAME(frame);
+			}
+
+		end_milliseconds = OSA_TimeGetMsec();
+
+		/* Milliseconds division can be truncated safely. */
+		warpPrint("Average time per frame for %d frames rendering %d triangles: %dms.\n", FRAMES_PER_STEP, num_tris, (end_milliseconds - start_milliseconds) / FRAMES_PER_STEP);
+
+		start_milliseconds = end_milliseconds;
+	}
 
 	#endif
 

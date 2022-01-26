@@ -11,7 +11,9 @@
     They are given in increasing complexity as you go down the list.
 */
 
+#define SPINNING_SQUARE_DEMO 0
 #define SPINNING_MULTICOLOUR_CUBE_DEMO 1
+#define TRIANGLES_VS_FRAMERATE_DEMO 0
 
 /*=================== END OF DEMO SELECTION ========================*/
 
@@ -27,22 +29,46 @@
     Optimisation prevents printing as the print buffer is no longer used.
 */
 
-#if (SPINNING_MULTICOLOUR_CUBE_DEMO)
+#if (SPINNING_SQUARE_DEMO)
     #define FRAME_NUM_ROWS 36
     #define FRAME_NUM_COLS 36
+    #define OUTER_FRAME 0 /* Used to display a square outline to display the limits of the frame on the OLED display. 1 for yes, 0 for no. */
+    #define L 0.7 /* Square side length. Short variable name for later clarity. */
+    #define NUM_TRIANGLES 2
+    #define GRAPHICS_OPTIMISED 0
+    #define ROTATION_RATE_THETA 6 /* Must be integer. */
+    #define ROTATION_RATE_PHI 0   /* Must be integer. */
+    #define NUM_ROTATIONS 20
+
+#elif (SPINNING_MULTICOLOUR_CUBE_DEMO)
+    #define FRAME_NUM_ROWS 36
+    #define FRAME_NUM_COLS 36
+    #define OUTER_FRAME 0 /* Used to display a square outline to display the limits of the frame on the OLED display. 1 for yes, 0 for no. */
     #define L 0.56 /* Cube side length. Short variable name for later clarity. */
     #define NUM_TRIANGLES 12
     #define GRAPHICS_OPTIMISED 0
     #define ROTATION_RATE_THETA 3 /* Must be integer. */
     #define ROTATION_RATE_PHI 7   /* Must be integer. */
-    #define NUM_ROTATIONS 1
+    #define NUM_ROTATIONS 20
+
+#elif (TRIANGLES_VS_FRAMERATE_DEMO)
+    #define FRAME_NUM_ROWS 36
+    #define FRAME_NUM_COLS 36
+    #define GRAPHICS_OPTIMISED 0
+    #define OUTER_FRAME 0 /* Used to display a square outline to display the limits of the frame on the OLED display. 1 for yes, 0 for no. */
+
+    #define ROTATION_RATE_THETA 0 /* Must be integer. */
+    #define ROTATION_RATE_PHI 0   /* Must be integer. */
+
+    #define START_TRIANGLES 30
+    #define END_TRIANGLES 300
+    #define STEP_TRIANGLES 30
+    #define FRAMES_PER_STEP 100
+
 #endif
 
 /* Used to display wireframe triangles - useful for debugging. 1 for yes, 0 for no. */
 #define WIREFRAME 0
-
-/* Used to display a square outline to display the limits of the frame on the OLED display. 1 for yes, 0 for no. */
-#define OUTER_FRAME 0
 
 /*
     Used to set the refresh rate of the display. See the 'FR Synchronisation' section of the SSD1331 manual.
