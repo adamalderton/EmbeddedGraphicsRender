@@ -1,9 +1,5 @@
 # EmbeddedGraphicsRender
 
-Author: Adam Alderton, Gonville & Caius College, aa2301@cam.ac.uk
-
-Premise: Final coursework for 4B25.
-
 ## Introduction
 
 This repository is a fork of the *Warp* firmware which can be found [here](https://github.com/physical-computation/Warp-firmware). This project is built upon the basis of the Warp firmware for a number of reasons:
